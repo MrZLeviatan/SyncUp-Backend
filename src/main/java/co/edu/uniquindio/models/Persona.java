@@ -13,7 +13,6 @@ import java.util.Objects;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
 @MappedSuperclass
 public abstract class Persona {
 
@@ -26,7 +25,7 @@ public abstract class Persona {
     @Comment("Nombre completo del usuario (nombre y apellidos).")
     private String nombre;
 
-    @Column(name = "username", nullable = false) // Cada username no puede ser nulo
+    @Column(name = "username", nullable = false, unique = true) // Cada username debe ser único y no puede ser nulo
     @Comment("Username único de la Persona.")
     private String username;
 
