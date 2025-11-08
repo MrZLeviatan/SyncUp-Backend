@@ -55,6 +55,13 @@ public class Cancion {
     private String duracion;
 
 
+    // Relación Muchos a Uno con el artista (Una canción es de un solo artista)
+    @ManyToOne(optional = false) // Es obligatorio que una canción tenga un artista principal
+    @JoinColumn(name = "artista_principal_id", nullable = false)
+    @Comment("Artista principal de la canción.")
+    private Artista artistaPrincipal;
+
+
     // ----------- equals() y hashCode() basado en 'id' -----------
 
     // Dos canciones son iguales si comparten el mismo ID en la base de datos.
@@ -71,7 +78,5 @@ public class Cancion {
     public int hashCode() {
         return Objects.hash(id);  // Usar solo el ID para el hash
     }
-
-
 
 }
