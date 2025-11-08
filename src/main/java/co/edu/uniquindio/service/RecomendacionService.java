@@ -2,6 +2,7 @@ package co.edu.uniquindio.service;
 
 import co.edu.uniquindio.dto.PlayListDto;
 import co.edu.uniquindio.dto.RadioDto;
+import co.edu.uniquindio.exception.ElemenoNoEncontradoException;
 import co.edu.uniquindio.models.Usuario;
 
 /**
@@ -30,7 +31,7 @@ public interface RecomendacionService {
      * @return Un objeto {@link RadioDto} que contiene el ID de la canción base y la lista
      * de canciones subsiguientes en la cola de reproducción.
      */
-    RadioDto iniciarRadio(Long cancionId);
+    RadioDto iniciarRadio(Long cancionId) throws ElemenoNoEncontradoException;
 
 
     /**
