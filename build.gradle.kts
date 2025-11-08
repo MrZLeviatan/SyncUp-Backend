@@ -70,6 +70,10 @@ dependencies {
     // Cloudinary: Librería para el guardado de imágenes en la web
     implementation("com.cloudinary:cloudinary-http44:1.32.2")
 
+    // Mpatric: Librería para calcular la duración de una canción
+    implementation("com.mpatric:mp3agic:0.9.1")
+
+
     // ==== Testing ====
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
