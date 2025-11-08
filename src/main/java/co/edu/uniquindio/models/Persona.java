@@ -9,6 +9,16 @@ import org.hibernate.annotations.Comment;
 
 import java.util.Objects;
 
+/**
+ * Clase Abstracta Base que contiene los atributos y métodos comunes a todas las personas/usuarios del sistema.
+ *
+ * <p>Esta clase está anotada con {@code @MappedSuperclass}, lo que significa que sus atributos de
+ * mapeo (ID, nombre, username, password) se incluirán directamente en las tablas de las clases que la hereden
+ * (por ejemplo, {@link Usuario} y {@link Admin}), pero no se mapeará a una tabla propia en la base de datos.
+ *
+ * <p>Define las propiedades esenciales para la autenticación y la identificación.
+ *
+ */
 @Getter
 @Setter
 @AllArgsConstructor
@@ -16,29 +26,52 @@ import java.util.Objects;
 @MappedSuperclass
 public abstract class Persona {
 
+    /**
+     * Identificador único de la persona.
+     * <p>Es la clave primaria en la tabla de la entidad concreta que herede esta clase.
+     * Generado automáticamente por la base de datos.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)  // ID creado automáticamente por Oracle SQL
     @Comment("ID interno único de la persona creado automáticamente por el sistema.")
     private Long id;
 
+    /**
+     * Nombre completo de la persona (nombre y apellidos).
+     * <p>Campo obligatorio (`nullable = false`).
+     */
     @Column(name = "nombre_completo", nullable = false) // El nombre no puede ser nulo.
     @Comment("Nombre completo del usuario (nombre y apellidos).")
     private String nombre;
 
+    /**
+     * Nombre de usuario (Username) único para la autenticación.
+     * <p>Campo obligatorio (`nullable = false`) y debe ser único en la base de datos (`unique = true`).
+     */
     @Column(name = "username", nullable = false, unique = true) // Cada username debe ser único y no puede ser nulo
     @Comment("Username único de la Persona.")
     private String username;
 
+    /**
+     * Contraseña cifrada para la autenticación del usuario.
+     * <p>Campo obligatorio (`nullable = false`). La contraseña debe almacenarse cifrada (hash) por seguridad.
+     */
     @Column(name = "password", nullable = false)  // El password no puede ser nulo
     @Comment("Contraseña cifrada del usuario para autenticación.")
     private String password;
 
 
-    // ----------- equals() y hashCode() basado en 'username' -----------
+    // -------------------------------------------------------------------------------------------------
+    // Métodos `equals()` y `hashCode()`
+    // -------------------------------------------------------------------------------------------------
 
     /**
-     * Este método determina si dos objetos Persona son iguales.
-     *  La comparación se basa únicamente en el campo 'username', ya que este es único para cada objeto Persona dentro del sistema.
+     * Compara si esta instancia de {@code Persona} es igual a otro objeto.
+     * <p>La igualdad se basa exclusivamente en la unicidad del username, ya que este es un identificador
+     * de negocio clave y es único en el sistema.
+     *
+     * @param o El objeto con el que se va a comparar.
+     * @return {@code true} si los usernames son iguales; {@code false} en caso contrario.
      */
     @Override
     public boolean equals(Object o) {
@@ -57,7 +90,9 @@ public abstract class Persona {
 
     /**
      * Calcula el código hash del objeto basado en el campo 'username'.
-     *  Esto garantiza coherencia con el método equals().
+     * <p>Esto garantiza coherencia con el método {@code equals()}, cumpliendo con el contrato de Java.
+     *
+     * @return El valor del código hash basado en el username.
      */
     @Override
     public int hashCode() {
