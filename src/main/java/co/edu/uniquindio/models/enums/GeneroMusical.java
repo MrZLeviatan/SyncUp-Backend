@@ -1,7 +1,9 @@
 package co.edu.uniquindio.models.enums;
 
+/**
+ * Enums responsable de los Generos musicales relacionados con la entidad {@link co.edu.uniquindio.models.Cancion}
+ */
 public enum GeneroMusical {
-
 
     ROCK,
     BACHATA,
@@ -13,6 +15,7 @@ public enum GeneroMusical {
     TRAP,
     RAP,
     METAL,
-    REGUE
+    REGUE,
+    ELECTRONICA
 
 }
