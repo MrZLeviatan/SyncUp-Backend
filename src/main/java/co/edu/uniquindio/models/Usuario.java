@@ -57,6 +57,37 @@ public class Usuario extends Persona {
 
 
     /**
+     * Lista de usuarios que este usuario sigue.
+     *
+     * <p>Se define una relación Muchos a Muchos con la misma entidad {@link Usuario}.
+     * <ul>
+     * <li>Un usuario puede seguir a muchos otros usuarios.</li>
+     * <li>Un usuario puede ser seguido por muchos otros usuarios.</li>
+     * </ul>
+     *
+     * <p>La tabla intermedia {@code usuario_sigue_a} mantiene la relación bidireccional.
+     * - La columna {@code seguidor_id} identifica al usuario que sigue.
+     * - La columna {@code seguido_id} identifica al usuario que es seguido.
+     *
+     * <p>Esta relación solo se mantiene desde el lado del “seguidor”, sin recursión automática.
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "usuario_sigue_a",
+            joinColumns = @JoinColumn(name = "seguidor_id"),      // Usuario que sigue
+            inverseJoinColumns = @JoinColumn(name = "seguido_id") // Usuario seguido
+    )
+    @Comment("Lista de usuarios que este usuario sigue (Following).")
+    private List<Usuario> usuariosSeguidos = new LinkedList<>();
+
+
+
+    // -------------------------------------------------------------
+    // MÉTODOS DE GESTIÓN DE CANCIONES FAVORITAS
+    // -------------------------------------------------------------
+
+
+    /**
      * Agrega una {@code Cancion} a la lista de favoritas del usuario.
      *
      * <p>Verifica que la canción no sea nula y que no esté ya presente en la lista para evitar duplicados.
@@ -90,6 +121,45 @@ public class Usuario extends Persona {
      */
     public List<Cancion> getListaCancionesFavoritas() {
         return new LinkedList<>(cancionesFavoritas);
+    }
+
+
+
+    // -------------------------------------------------------------
+    // MÉTODOS DE GESTIÓN DE USUARIOS SEGUIDOS
+    // -------------------------------------------------------------
+
+    /**
+     * Agrega un usuario a la lista de seguidos.
+     *
+     * <p>Evita que el usuario se siga a sí mismo y previene duplicados.
+     *
+     * @param usuario El usuario a seguir.
+     */
+    public void seguirUsuario(Usuario usuario) {
+        if (usuario != null && !usuario.equals(this) && !usuariosSeguidos.contains(usuario)) {
+            usuariosSeguidos.add(usuario);
+        }
+    }
+
+
+    /**
+     * Deja de seguir a un usuario previamente seguido.
+     *
+     * @param usuario El usuario a dejar de seguir.
+     */
+    public void dejarDeSeguirUsuario(Usuario usuario) {
+        usuariosSeguidos.remove(usuario);
+    }
+
+
+    /**
+     * Retorna una copia segura de la lista de usuarios seguidos.
+     *
+     * @return Lista de usuarios seguidos por este usuario.
+     */
+    public List<Usuario> getListaUsuariosSeguidos() {
+        return new LinkedList<>(usuariosSeguidos);
     }
 
 }

@@ -34,7 +34,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "cancion")
+@Table(name = "canción")
 @Comment("Entidad que representan las Canciones registradas.")
 public class Cancion {
 

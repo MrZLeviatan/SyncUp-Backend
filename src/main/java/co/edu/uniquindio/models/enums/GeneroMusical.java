@@ -15,6 +15,7 @@ public enum GeneroMusical {
     TRAP,
     RAP,
     METAL,
-    REGUE
+    REGUE,
+    ELECTRONICA
 
 }

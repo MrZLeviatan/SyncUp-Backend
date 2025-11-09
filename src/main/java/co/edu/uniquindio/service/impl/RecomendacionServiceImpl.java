@@ -58,7 +58,7 @@ public class RecomendacionServiceImpl implements RecomendacionService {
     @Override
     public RadioDto iniciarRadio(Long cancionId) throws ElemenoNoEncontradoException {
 
-        // 1. Obtiene el grafo y la entidad Cancion base.
+        // 1. Obtiene el grafo
         GrafoDeSimilitud grafo = similitudService.obtenerGrafo();
 
         // Busca la canción base en la base de datos usando su ID.
