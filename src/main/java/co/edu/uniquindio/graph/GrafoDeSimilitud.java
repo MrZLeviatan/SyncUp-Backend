@@ -1,6 +1,8 @@
 package co.edu.uniquindio.graph;
 
 import co.edu.uniquindio.models.Cancion;
+import org.springframework.stereotype.Component;
+
 import java.util.*;
 
 /**
@@ -14,6 +16,7 @@ import java.util.*;
  *
  * @see Cancion
  */
+@Component
 public class GrafoDeSimilitud {
 
     /**

@@ -1,6 +1,7 @@
 package co.edu.uniquindio.graph;
 
 import co.edu.uniquindio.models.Usuario;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
@@ -15,6 +16,7 @@ import java.util.*;
  *
  * @see Usuario
  */
+@Component
 public class GrafoSocial {
 
 

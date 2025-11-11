@@ -108,7 +108,7 @@ public class RecomendacionServiceDescubrimientoSemanalTest {
         // Simula el mapper para transformar Cancion → CancionDto
         when(cancionMapper.toDto(any(Cancion.class))).thenAnswer(invocacion -> {
             Cancion c = invocacion.getArgument(0);
-            return new CancionDto(c.getId(), c.getTitulo(), GeneroMusical.ELECTRONICA,null, null, 1L );
+            return new CancionDto(c.getId(), c.getTitulo(), GeneroMusical.ELECTRONICA,null, null, null,null );
         });
 
         // Ejecuta el método a probar

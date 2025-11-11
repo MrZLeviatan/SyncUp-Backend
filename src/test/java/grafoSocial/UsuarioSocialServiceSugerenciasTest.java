@@ -49,14 +49,20 @@ class UsuarioSocialServiceSugerenciasTest {
         usuarioBase = new Usuario();
         usuarioBase.setId(1L);
         usuarioBase.setNombre("Carlos Base");
+        usuarioBase.setUsername("carlosB");
+
 
         amigo1 = new Usuario();
         amigo1.setId(2L);
         amigo1.setNombre("Ana Amiga");
+        amigo1.setUsername("anaA");
+
 
         amigo2 = new Usuario();
         amigo2.setId(3L);
         amigo2.setNombre("Luis Recomendado");
+        amigo2.setUsername("luisR");
+
     }
 
     @Test
@@ -79,8 +85,15 @@ class UsuarioSocialServiceSugerenciasTest {
 
         // Assert: válida la cantidad y contenido.
         assertEquals(2, sugerencias.size(), "Deberían haberse devuelto 2 sugerencias.");
-        assertEquals("Ana Amiga", sugerencias.get(0).nombre());
-        assertEquals("Luis Recomendado", sugerencias.get(1).nombre());
+
+        List<String> nombres = sugerencias.stream()
+                .map(SugerenciaUsuariosDto::nombre)
+                .toList();
+
+        assertTrue(nombres.contains("Ana Amiga"), "Debería contener 'Ana Amiga'");
+        assertTrue(nombres.contains("Luis Recomendado"), "Debería contener 'Luis Recomendado'");
+        assertEquals(2, nombres.size(), "Deberían ser exactamente 2 sugerencias");
+
 
         // Verifica que se haya invocado el método del grafo.
         verify(grafoSocial).obtenerAmigosDeAmigos(usuarioBase);

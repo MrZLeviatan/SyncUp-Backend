@@ -27,7 +27,6 @@ import org.hibernate.annotations.Comment;
  */
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "Admins")

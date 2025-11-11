@@ -40,7 +40,7 @@ public class UsuarioSocialServiceImpl implements UsuarioSocialService {
     private final UsuarioMapper usuarioMapper;
 
     /** Estructura en memoria que modela las relaciones sociales para un acceso rápido. */
-    private final GrafoSocial grafoSocial = new GrafoSocial();
+    private final GrafoSocial grafoSocial;
 
 
     /**
