@@ -94,7 +94,9 @@ public class RecomendacionServiceIniciarRadioTest {
         // Simula el mapper
         when(cancionMapper.toDto(any(Cancion.class)))
                 .thenAnswer(inv -> new CancionDto(((Cancion) inv.getArgument(0)).getId(),
-                        ((Cancion) inv.getArgument(0)).getTitulo(), "Daft Punk"));
+                        ((Cancion) inv.getArgument(0)).getTitulo(),((Cancion) inv.getArgument(0)).getGeneroMusical(),
+                        ((Cancion) inv.getArgument(0)).getFechaLanzamiento(),((Cancion) inv.getArgument(0)).getUrlCancion(),
+                        ((Cancion) inv.getArgument(0)).getUrlPortada(), ((Cancion) inv.getArgument(0)).getArtistaPrincipal().getId()));
 
         // Ejecuta el método
         RadioDto resultado = recomendacionService.iniciarRadio(1L);

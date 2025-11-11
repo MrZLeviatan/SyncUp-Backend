@@ -49,10 +49,14 @@ class UsuarioSocialServiceSeguirTest {
         principal = new Usuario();
         principal.setId(1L);
         principal.setNombre("Juan Principal");
+        principal.setUsername("juan123");
+
 
         objetivo = new Usuario();
         objetivo.setId(2L);
         objetivo.setNombre("Pedro Objetivo");
+        objetivo.setUsername("pedro456");
+
     }
 
     @Test

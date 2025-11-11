@@ -12,6 +12,7 @@ import co.edu.uniquindio.models.Usuario;
 import co.edu.uniquindio.repo.UsuarioRepo;
 import co.edu.uniquindio.service.UsuarioService;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,10 +47,12 @@ public class UsuarioServiceImpl implements UsuarioService {
     /** Componente para el cifrado y la verificación de contraseñas. */
     private final PasswordEncoder passwordEncoder;
 
+    // Solo para pruebas unitarias o validación interna
     /**
      * Índice en memoria (Cache): Almacena todos los usuarios indexados por su username
      * para búsquedas O(1) y validaciones de unicidad rápidas.
      */
+    @Getter
     private final HashMap<String, Usuario> indiceUsuarios = new HashMap<>();
 
 
@@ -64,7 +67,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         List<Usuario> usuarios = usuarioRepo.findAll();
         usuarios.forEach(usuario -> indiceUsuarios.put(usuario.getUsername(), usuario));
     }
-
 
 
     /**

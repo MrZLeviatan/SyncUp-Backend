@@ -2,6 +2,8 @@ package co.edu.uniquindio.dto.cancion;
 
 import co.edu.uniquindio.models.enums.GeneroMusical;
 
+import java.time.LocalDate;
+
 /**
  * Objeto de Transferencia de Datos (DTO) que representa la información pública de una canción.
  *
@@ -24,6 +26,7 @@ public record CancionDto(
         Long id,
         String titulo,
         GeneroMusical generoMusical,
+        LocalDate fechaLanzamiento,
         String urlCancion,
         String urlPortada,
         Long idArtista
