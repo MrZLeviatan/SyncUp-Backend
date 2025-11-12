@@ -2,7 +2,7 @@ package grafoSocial;
 
 
 import co.edu.uniquindio.dto.usuario.SugerenciaUsuariosDto;
-import co.edu.uniquindio.exception.ElemenoNoEncontradoException;
+import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.graph.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
@@ -67,7 +67,7 @@ class UsuarioSocialServiceSugerenciasTest {
 
     @Test
     @DisplayName("Debería devolver sugerencias de amigos correctamente")
-    void testObtenerSugerenciasExitosas() throws ElemenoNoEncontradoException {
+    void testObtenerSugerenciasExitosas() throws ElementoNoEncontradoException {
         // Arrange: simula que el usuario base existe.
         when(usuarioRepo.findById(1L)).thenReturn(Optional.of(usuarioBase));
 
@@ -106,7 +106,7 @@ class UsuarioSocialServiceSugerenciasTest {
         when(usuarioRepo.findById(1L)).thenReturn(Optional.empty());
 
         // Act + Assert
-        assertThrows(ElemenoNoEncontradoException.class,
+        assertThrows(ElementoNoEncontradoException.class,
                 () -> usuarioSocialService.obtenerSugerencias(1L));
 
         // Verifica que no se haya llamado al grafo.
@@ -115,7 +115,7 @@ class UsuarioSocialServiceSugerenciasTest {
 
     @Test
     @DisplayName("Debería devolver lista vacía si no hay sugerencias disponibles")
-    void testObtenerSugerenciasVacia() throws ElemenoNoEncontradoException {
+    void testObtenerSugerenciasVacia() throws ElementoNoEncontradoException {
         // Arrange
         when(usuarioRepo.findById(1L)).thenReturn(Optional.of(usuarioBase));
         when(grafoSocial.obtenerAmigosDeAmigos(usuarioBase)).thenReturn(List.of());

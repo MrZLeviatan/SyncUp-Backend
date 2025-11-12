@@ -39,7 +39,7 @@ public class SimilitudService {
      * Instancia del grafo de similitud que almacena todas las canciones y sus conexiones ponderadas.
      * Es la estructura de datos central para la lógica de recomendación.
      */
-    private final GrafoDeSimilitud grafo = new GrafoDeSimilitud();
+    private final GrafoDeSimilitud grafo;
 
     /**
      * Método de inicialización que se ejecuta inmediatamente después de que el Bean sea construido por Spring.

@@ -2,7 +2,7 @@ package grafoSimilitudes;
 
 import co.edu.uniquindio.dto.RadioDto;
 import co.edu.uniquindio.dto.cancion.CancionDto;
-import co.edu.uniquindio.exception.ElemenoNoEncontradoException;
+import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.graph.GrafoDeSimilitud;
 import co.edu.uniquindio.mapper.CancionMapper;
 import co.edu.uniquindio.models.Artista;
@@ -67,7 +67,7 @@ public class RecomendacionServiceIniciarRadioTest {
      */
     @Test
     @DisplayName("iniciarRadio: éxito - canción encontrada y vecinos generados")
-    void testIniciarRadio_Exito() throws ElemenoNoEncontradoException {
+    void testIniciarRadio_Exito() throws ElementoNoEncontradoException {
         // Crea un artista ficticio
         Artista artista = new Artista(1L, "Daft Punk", new HashSet<>());
 
@@ -123,7 +123,7 @@ public class RecomendacionServiceIniciarRadioTest {
         when(cancionRepo.findById(99L)).thenReturn(Optional.empty());
 
         // Verifica que se lanza la excepción esperada
-        assertThrows(ElemenoNoEncontradoException.class,
+        assertThrows(ElementoNoEncontradoException.class,
                 () -> recomendacionService.iniciarRadio(99L));
     }
 }

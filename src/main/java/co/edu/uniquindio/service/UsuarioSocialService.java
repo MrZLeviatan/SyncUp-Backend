@@ -2,7 +2,7 @@ package co.edu.uniquindio.service;
 
 import co.edu.uniquindio.dto.usuario.SugerenciaUsuariosDto;
 import co.edu.uniquindio.dto.usuario.UsuarioConexionDto;
-import co.edu.uniquindio.exception.ElemenoNoEncontradoException;
+import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 
 import java.util.List;
 
@@ -27,9 +27,9 @@ public interface UsuarioSocialService {
      * <p>Esta operación debe reflejarse en la estructura del {@link co.edu.uniquindio.graph.GrafoSocial}.
      *
      * @param dto Objeto {@link UsuarioConexionDto} que contiene los IDs del usuario principal y del usuario objetivo.
-     * @throws ElemenoNoEncontradoException Si alguno de los IDs de usuario no existe.
+     * @throws ElementoNoEncontradoException Si alguno de los IDs de usuario no existe.
      */
-    void seguirUsuario(UsuarioConexionDto dto) throws ElemenoNoEncontradoException;
+    void seguirUsuario(UsuarioConexionDto dto) throws ElementoNoEncontradoException;
 
 
     /**
@@ -38,9 +38,9 @@ public interface UsuarioSocialService {
      * <p>Esta operación debe revertir la conexión en él {@link co.edu.uniquindio.graph.GrafoSocial}.
      *
      * @param dto Objeto {@link UsuarioConexionDto} que contiene los IDs del usuario principal y del usuario objetivo.
-     * @throws ElemenoNoEncontradoException Si alguno de los IDs de usuario no existe.
+     * @throws ElementoNoEncontradoException Si alguno de los IDs de usuario no existe.
      */
-    void dejarDeSeguirUsuario(UsuarioConexionDto dto) throws ElemenoNoEncontradoException;
+    void dejarDeSeguirUsuario(UsuarioConexionDto dto) throws ElementoNoEncontradoException;
 
 
     /**
@@ -51,7 +51,7 @@ public interface UsuarioSocialService {
      *
      * @param idUsuario El ID del usuario para el cual se están buscando las sugerencias.
      * @return Una {@code List} de {@link SugerenciaUsuariosDto} con la información aligerada de los usuarios sugeridos.
-     * @throws ElemenoNoEncontradoException Si el ID del usuario no existe.
+     * @throws ElementoNoEncontradoException Si el ID del usuario no existe.
      */
-    List<SugerenciaUsuariosDto> obtenerSugerencias(Long idUsuario) throws ElemenoNoEncontradoException;
+    List<SugerenciaUsuariosDto> obtenerSugerencias(Long idUsuario) throws ElementoNoEncontradoException;
 }

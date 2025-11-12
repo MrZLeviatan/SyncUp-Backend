@@ -1,7 +1,7 @@
 package grafoSocial;
 
 import co.edu.uniquindio.dto.usuario.UsuarioConexionDto;
-import co.edu.uniquindio.exception.ElemenoNoEncontradoException;
+import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.graph.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
@@ -61,7 +61,7 @@ class UsuarioSocialServiceSeguirTest {
 
     @Test
     @DisplayName("Debería permitir que un usuario siga a otro correctamente")
-    void testSeguirUsuarioExitoso() throws ElemenoNoEncontradoException {
+    void testSeguirUsuarioExitoso() throws ElementoNoEncontradoException {
         // Arrange: configura las respuestas simuladas del repositorio.
         when(usuarioRepo.findById(1L)).thenReturn(Optional.of(principal));
         when(usuarioRepo.findById(2L)).thenReturn(Optional.of(objetivo));
@@ -90,7 +90,7 @@ class UsuarioSocialServiceSeguirTest {
         UsuarioConexionDto dto = new UsuarioConexionDto(1L, 2L);
 
         // Act + Assert: espera la excepción de elemento no encontrado.
-        assertThrows(ElemenoNoEncontradoException.class, () -> usuarioSocialService.seguirUsuario(dto));
+        assertThrows(ElementoNoEncontradoException.class, () -> usuarioSocialService.seguirUsuario(dto));
 
         // Verifica que no se haya intentado guardar nada.
         verify(usuarioRepo, never()).save(any());
@@ -106,7 +106,7 @@ class UsuarioSocialServiceSeguirTest {
         UsuarioConexionDto dto = new UsuarioConexionDto(1L, 2L);
 
         // Act + Assert
-        assertThrows(ElemenoNoEncontradoException.class, () -> usuarioSocialService.seguirUsuario(dto));
+        assertThrows(ElementoNoEncontradoException.class, () -> usuarioSocialService.seguirUsuario(dto));
 
         // Verifica que no se haya guardado ningún cambio.
         verify(usuarioRepo, never()).save(any());
@@ -114,7 +114,7 @@ class UsuarioSocialServiceSeguirTest {
 
     @Test
     @DisplayName("Debería permitir dejar de seguir correctamente")
-    void testDejarDeSeguirExitoso() throws ElemenoNoEncontradoException {
+    void testDejarDeSeguirExitoso() throws ElementoNoEncontradoException {
         // Arrange: configura usuarios conectados previamente.
         principal.seguirUsuario(objetivo);
         when(usuarioRepo.findById(1L)).thenReturn(Optional.of(principal));

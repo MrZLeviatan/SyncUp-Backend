@@ -65,6 +65,7 @@ public interface UsuarioMapper {
      * @param usuario Entidad {@link Usuario} existente que será modificada.
      */
     // Actualiza solo los campos del DTO en la entidad
+    @Mapping(target = "id", ignore = true )
     void updateUsuarioFromDto(EditarUsuarioDto editarUsuarioDto, @MappingTarget Usuario usuario);
 
 

@@ -3,7 +3,7 @@ package co.edu.uniquindio.service.impl;
 import co.edu.uniquindio.dto.PlayListDto;
 import co.edu.uniquindio.dto.RadioDto;
 import co.edu.uniquindio.dto.cancion.CancionDto;
-import co.edu.uniquindio.exception.ElemenoNoEncontradoException;
+import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.graph.GrafoDeSimilitud;
 import co.edu.uniquindio.mapper.CancionMapper;
 import co.edu.uniquindio.models.Cancion;
@@ -53,10 +53,10 @@ public class RecomendacionServiceImpl implements RecomendacionService {
      *
      * @param cancionId El ID de la canción que sirve como punto de partida.
      * @return Un objeto {@link RadioDto} que contiene la cola de reproducción ordenada por similitud.
-     * @throws ElemenoNoEncontradoException Si la canción base no se encuentra en la base de datos.
+     * @throws ElementoNoEncontradoException Si la canción base no se encuentra en la base de datos.
      */
     @Override
-    public RadioDto iniciarRadio(Long cancionId) throws ElemenoNoEncontradoException {
+    public RadioDto iniciarRadio(Long cancionId) throws ElementoNoEncontradoException {
 
         // 1. Obtiene el grafo
         GrafoDeSimilitud grafo = similitudService.obtenerGrafo();
@@ -64,7 +64,7 @@ public class RecomendacionServiceImpl implements RecomendacionService {
         // Busca la canción base en la base de datos usando su ID.
         Cancion cancionBase = cancionRepo.findById(cancionId)
                 // Si no se encuentra, lanza una exceptión.
-                .orElseThrow(()-> new ElemenoNoEncontradoException("Canción con ID:" + cancionId + "No encontrada"));
+                .orElseThrow(()-> new ElementoNoEncontradoException("Canción con ID:" + cancionId + "No encontrada"));
 
         // 2. Obtiene los vecinos directos y los ordena por peso (costo).
         Map<Cancion, Double> vecinos = grafo.obtenerVecinos(cancionBase);

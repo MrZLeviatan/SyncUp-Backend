@@ -1,9 +1,14 @@
 package co.edu.uniquindio.mapper;
 
 import co.edu.uniquindio.dto.cancion.CancionDto;
+import co.edu.uniquindio.dto.cancion.EditarCancionDto;
+import co.edu.uniquindio.dto.cancion.RegistrarCancionDto;
+import co.edu.uniquindio.dto.usuario.EditarUsuarioDto;
 import co.edu.uniquindio.models.Cancion;
+import co.edu.uniquindio.models.Usuario;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 /**
  * Mapper de transformación para la entidad {@link Cancion} y su DTO asociado ({@link CancionDto}).
@@ -36,4 +41,41 @@ public interface CancionMapper {
     @Mapping(target = "idArtista", source = "artistaPrincipal.id")
     CancionDto toDto(Cancion cancion);  // Se mapea la entidad Canción a CancionDto
 
+
+    /**
+     * Convierte el DTO de registro {@link RegistrarCancionDto} en una nueva entidad {@link Cancion}.
+     *
+     * <p>Esta es una operación de mapeo de escritura (DTO de entrada a entidad).
+     *
+     * <p>Se ignoran varios campos de la entidad que no vienen directamente del DTO,
+     * ya que estos serán establecidos posteriormente por la lógica del servicio o
+     * por el gestor de persistencia. Los campos ignorados son:
+     * <ul>
+     * <li>`id`: Es generado por la base de datos (clave primaria).</li>
+     * <li>`urlCancion`, `urlPortada`: Son generadas por el servicio de almacenamiento (ej. Cloud Storage)
+     * después de procesar los archivos {@code MultipartFile} del DTO.</li>
+     * <li>`artistaPrincipal`: Debe ser buscado en la base de datos usando el `artistaId` del DTO
+     * y asignado por el servicio.</li>
+     * <li>`duracion`: Debe ser calculada por el servicio analizando el archivo de audio.</li>
+     * </ul>
+     *
+     * @param registrarCancionDto DTO de entrada con los metadatos y archivos de la canción.
+     * @return Una nueva entidad {@code Cancion} con los datos básicos del DTO.
+     */
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "urlCancion", ignore = true)
+    @Mapping(target = "urlPortada", ignore = true)
+    @Mapping(target = "artistaPrincipal", ignore = true)
+    @Mapping(target = "duracion", ignore = true)
+    Cancion toEntity(RegistrarCancionDto registrarCancionDto);
+
+
+
+    @Mapping(target = "id", ignore = true)
+    void updateUsuarioFromDto(EditarCancionDto editarCancionDto, @MappingTarget Cancion cancion);
+
+
+
 }
+
+

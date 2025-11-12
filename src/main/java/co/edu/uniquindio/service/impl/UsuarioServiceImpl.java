@@ -4,9 +4,10 @@ import co.edu.uniquindio.dto.usuario.EditarPasswordDto;
 import co.edu.uniquindio.dto.usuario.EditarUsuarioDto;
 import co.edu.uniquindio.dto.usuario.RegistrarUsuarioDto;
 import co.edu.uniquindio.dto.usuario.UsuarioDto;
-import co.edu.uniquindio.exception.ElemenoNoEncontradoException;
+import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.exception.ElementoNoCoincideException;
 import co.edu.uniquindio.exception.ElementoRepetidoException;
+import co.edu.uniquindio.graph.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
 import co.edu.uniquindio.repo.UsuarioRepo;
@@ -46,6 +47,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     /** Componente para el cifrado y la verificación de contraseñas. */
     private final PasswordEncoder passwordEncoder;
+
+    private final GrafoSocial grafoSocial;
 
     // Solo para pruebas unitarias o validación interna
     /**
@@ -95,6 +98,9 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         // 5. Agrega el usuario al HashMap usando el username como clave
         indiceUsuarios.put(usuario.getUsername(), usuario);
+
+        // 6. Se agrega al grafo social
+        grafoSocial.agregarUsuario(guardado);
     }
 
 
@@ -105,10 +111,10 @@ public class UsuarioServiceImpl implements UsuarioService {
      * para realizar la copia de propiedades de actualización.
      *
      * @param editarUsuarioDto DTO con el ID del usuario y los campos a modificar.
-     * @throws ElemenoNoEncontradoException Si el usuario no existe.
+     * @throws ElementoNoEncontradoException Si el usuario no existe.
      */
     @Override
-    public void editarUsuario(EditarUsuarioDto editarUsuarioDto) throws ElemenoNoEncontradoException {
+    public void editarUsuario(EditarUsuarioDto editarUsuarioDto) throws ElementoNoEncontradoException {
 
         // 1. Se busca al usuario mediante su ID.
         Usuario usuario = buscarUsuarioId(editarUsuarioDto.id());
@@ -128,12 +134,12 @@ public class UsuarioServiceImpl implements UsuarioService {
      * Cambia la contraseña de un usuario tras verificar la credencial anterior.
      *
      * @param editarPasswordDto DTO con el ID, password anterior y nuevo password.
-     * @throws ElemenoNoEncontradoException Si el usuario no existe.
+     * @throws ElementoNoEncontradoException Si el usuario no existe.
      * @throws ElementoNoCoincideException Si la contraseña anterior es incorrecta.
      */
     @Override
     public void editarPassword(EditarPasswordDto editarPasswordDto)
-            throws ElemenoNoEncontradoException, ElementoNoCoincideException {
+            throws ElementoNoEncontradoException, ElementoNoCoincideException {
 
         // 1. Se busca al usuario mediante su ID.
         Usuario usuario = buscarUsuarioId(editarPasswordDto.id());
@@ -158,18 +164,28 @@ public class UsuarioServiceImpl implements UsuarioService {
      * Elimina permanentemente un usuario de la DB y del caché.
      *
      * @param idUsuario ID del usuario a eliminar.
-     * @throws ElemenoNoEncontradoException Si el usuario no existe.
+     * @throws ElementoNoEncontradoException Si el usuario no existe.
      */
     @Override
-    public void eliminarUsuario(Long idUsuario) throws ElemenoNoEncontradoException {
+    public void eliminarUsuario(Long idUsuario) throws ElementoNoEncontradoException {
 
         // 1. Se busca al usuario mediante su ID.
         Usuario usuario = buscarUsuarioId(idUsuario);
 
-        // 2. Se elimina el usuario de la base de datos
+        // 1. Eliminar de la lista de usuarios seguidos de otros
+        for (Usuario u : grafoSocial.obtenerEstructura().keySet()) {
+            u.getUsuariosSeguidos().remove(usuario); // Eliminar referencia en listas
+            grafoSocial.desconectarUsuarios(u, usuario); // Actualizar grafo en memoria
+        }
+
+
+        // 2. Eliminar todas sus conexiones en el grafo
+        grafoSocial.obtenerEstructura().remove(usuario);
+
+        // 3. Se elimina el usuario de la base de datos
         usuarioRepo.delete(usuario);
 
-        // 3. Se elimina el usuario del HashMap
+        // 4. Se elimina el usuario del HashMap
         indiceUsuarios.remove(usuario.getUsername());
     }
 
@@ -179,10 +195,10 @@ public class UsuarioServiceImpl implements UsuarioService {
      *
      * @param idUsuario ID del usuario a buscar.
      * @return {@link UsuarioDto} del usuario encontrado.
-     * @throws ElemenoNoEncontradoException Si el usuario no existe.
+     * @throws ElementoNoEncontradoException Si el usuario no existe.
      */
     @Override
-    public UsuarioDto obtenerUsuarioId(Long idUsuario) throws ElemenoNoEncontradoException {
+    public UsuarioDto obtenerUsuarioId(Long idUsuario) throws ElementoNoEncontradoException {
         // Se mapea el usuario al objeto de transferencia DTO
         return usuarioMapper.toDto(buscarUsuarioId(idUsuario));
     }
@@ -193,17 +209,17 @@ public class UsuarioServiceImpl implements UsuarioService {
      *
      * @param username Username del usuario a buscar.
      * @return {@link UsuarioDto} del usuario encontrado.
-     * @throws ElemenoNoEncontradoException Si el usuario no existe en el índice.
+     * @throws ElementoNoEncontradoException Si el usuario no existe en el índice.
      */
     @Override
-    public UsuarioDto obtenerUsuarioUsername(String username) throws ElemenoNoEncontradoException {
+    public UsuarioDto obtenerUsuarioUsername(String username) throws ElementoNoEncontradoException {
 
         // 1. Se busca al usuario en el HashMap usando el username como clave
         Usuario usuario = indiceUsuarios.get(username);
 
         // 2. Si no encuentra el usuario, lanza una exception
         if (usuario == null) {
-            throw new ElemenoNoEncontradoException("Usuario no encontrado por su username: " + username);
+            throw new ElementoNoEncontradoException("Usuario no encontrado por su username: " + username);
         }
         //  3. Se convierte la entidad Usuario en un DTO antes de retornarlo
         return usuarioMapper.toDto(usuario);
@@ -232,10 +248,10 @@ public class UsuarioServiceImpl implements UsuarioService {
      *
      * @param idUsuario ID del usuario a buscar.
      * @return Entidad {@link Usuario} encontrada.
-     * @throws ElemenoNoEncontradoException Si el usuario no existe en la base de datos.
+     * @throws ElementoNoEncontradoException Si el usuario no existe en la base de datos.
      */
-    private Usuario buscarUsuarioId(Long idUsuario) throws ElemenoNoEncontradoException {
+    private Usuario buscarUsuarioId(Long idUsuario) throws ElementoNoEncontradoException {
         return usuarioRepo.findById(idUsuario)
-                .orElseThrow(() -> new ElemenoNoEncontradoException("Usuario no encontrado por su Id"));
+                .orElseThrow(() -> new ElementoNoEncontradoException("Usuario no encontrado por su Id"));
     }
 }
