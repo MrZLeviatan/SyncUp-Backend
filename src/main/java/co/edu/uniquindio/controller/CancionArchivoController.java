@@ -15,6 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+/**
+ * Controlador REST para la gestión y descarga de archivos de reportes (CSV, TXT) de canciones.
+ *
+ * <p>Expone los *endpoints* para generar reportes dinámicos que permiten a los usuarios
+ * y administradores exportar datos específicos del sistema.</p>
+ *
+ * @see CancionArchivoService
+ */
 @RestController
 @RequestMapping("/api/canciones")
 @RequiredArgsConstructor
@@ -68,7 +76,7 @@ public class CancionArchivoController {
      * y configura las cabeceras HTTP necesarias para forzar la descarga del archivo por parte del navegador.</p>
      *
      * @return {@code ResponseEntity<byte[]>} con el archivo TXT y cabeceras para descarga.
-     * @throws Exception Si ocurre un error durante la generación del reporte o la lectura de bytes.
+     * @throws Exception Sí ocurre un error durante la generación del reporte o la lectura de bytes.
      */
     @GetMapping("/reporte-general")
     @PreAuthorize("hasRole('ADMIN')") // Solo administradores pueden descargar el reporte general.

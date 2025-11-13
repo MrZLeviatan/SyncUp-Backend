@@ -46,4 +46,12 @@ public interface CancionRepo extends JpaRepository<Cancion, Long> {
      */
     List<Cancion> findByGeneroMusical(GeneroMusical genero);
 
+
+    /**
+     * Busca canciones cuyos títulos coincidan con alguno en la lista dada (ignorando mayúsculas/minúsculas).
+     *
+     * @param titulos Lista de títulos coincidentes.
+     * @return Lista de canciones encontradas.
+     */
+    List<Cancion> findByTituloInIgnoreCase(List<String> titulos);
 }
