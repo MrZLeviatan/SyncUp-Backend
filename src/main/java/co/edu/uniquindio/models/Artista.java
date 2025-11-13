@@ -62,5 +62,51 @@ public class Artista {
     @Comment("Canciones donde el artista es el intérprete.")
     private Set<Cancion> canciones = new HashSet<>();
 
+
+
+    /**
+     * Agrega una canción al artista y establece este artista como su intérprete principal.
+     * Este método asegura la coherencia en ambos lados de la relación.
+     *
+     * @param cancion Canción que se desea asociar a este artista.
+     */
+    public void agregarCancion(Cancion cancion) {
+        // Verificamos que la canción no sea nula antes de operar.
+        if (cancion == null) {
+            throw new IllegalArgumentException("La canción no puede ser nula.");
+        }
+
+        // Añadimos la canción al conjunto de canciones del artista.
+        this.canciones.add(cancion);
+
+        // Si la canción aún no tiene artista asignado, establecemos este artista como principal.
+        if (cancion.getArtistaPrincipal() != this) {
+            cancion.setArtistaPrincipal(this);
+        }
+    }
+
+
+
+    /**
+     * Elimina una canción del artista y rompe la relación bidireccional de forma segura.
+     * También se encarga de poner en null la referencia del artista en la canción eliminada.
+     *
+     * @param cancion Canción que se desea eliminar de la lista del artista.
+     */
+    public void eliminarCancion(Cancion cancion) {
+        // Si la canción no está en la lista, no hay nada que eliminar.
+        if (cancion == null || !this.canciones.contains(cancion)) {
+            return;
+        }
+
+        // Eliminamos la canción del conjunto del artista.
+        this.canciones.remove(cancion);
+
+        // Si la canción estaba asociada a este artista, removemos la referencia.
+        if (cancion.getArtistaPrincipal() == this) {
+            cancion.setArtistaPrincipal(null);
+        }
+    }
+
 }
 

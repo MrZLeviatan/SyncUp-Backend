@@ -10,6 +10,7 @@ import co.edu.uniquindio.exception.ElementoRepetidoException;
 import co.edu.uniquindio.graph.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
+import co.edu.uniquindio.repo.AdminRepo;
 import co.edu.uniquindio.repo.UsuarioRepo;
 import co.edu.uniquindio.service.UsuarioService;
 import jakarta.annotation.PostConstruct;
@@ -44,6 +45,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     /** Repositorio de Spring Data JPA para la persistencia del usuario. */
     private final UsuarioRepo usuarioRepo;
+
+    private final AdminRepo adminRepo;
 
     /** Componente para el cifrado y la verificación de contraseñas. */
     private final PasswordEncoder passwordEncoder;
@@ -84,6 +87,11 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         // 1. Validar unicidad usando el índice en memoria (O(1)).
         if (indiceUsuarios.containsKey(registrarUsuarioDto.username())) {
+            throw new ElementoRepetidoException("El username ya está en uso");
+        }
+
+        // 1.2 Validar unicidad usando el repo del Admin.
+        if (adminRepo.existsByUsername(registrarUsuarioDto.username())) {
             throw new ElementoRepetidoException("El username ya está en uso");
         }
 

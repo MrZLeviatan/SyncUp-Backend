@@ -101,12 +101,16 @@ public class CancionServiceImpl implements CancionService {
         cancion.setUrlCancion(urlMp3);
         cancion.setUrlPortada(urlImage);
         cancion.setDuracion(duracion);
-        cancion.setArtistaPrincipal(artista);
+
+        // Usar el método del modelo Artista para mantener la relación bidireccional
+        artista.agregarCancion(cancion);
 
         // 6. Guardar en base de datos
         cancionRepo.save(cancion);
+        artistaRepo.save(artista);
 
         // === Sincronización con el grafo ===
+
         // Agregar la nueva canción como nodo
         grafoDeSimilitud.agregarCancion(cancion);
 
@@ -171,8 +175,12 @@ public class CancionServiceImpl implements CancionService {
         // 2. Eliminar del grafo de similitud
         grafoDeSimilitud.eliminarCancion(cancion);
 
-        // 3. Remover la canción de la colección del artista principal (manejo de la relación inversa).
-        cancion.getArtistaPrincipal().getCanciones().remove(cancion);
+        // 3. Usar el método del modelo Artista para mantener la coherencia
+        Artista artista = cancion.getArtistaPrincipal();
+        if (artista != null) {
+            artista.eliminarCancion(cancion);
+            artistaRepo.save(artista);
+        }
 
         // 4. Eliminar de la base de datos
         cancionRepo.delete(cancion);
