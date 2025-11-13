@@ -1,8 +1,11 @@
 package co.edu.uniquindio.repo;
 
 import co.edu.uniquindio.models.Artista;
+import co.edu.uniquindio.models.Cancion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * Repositorio de persistencia para la entidad Artista (asumiendo que existe una entidad llamada Artista).
@@ -20,5 +23,21 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ArtistaRepo extends JpaRepository<Artista, Long> {
+
+    /**
+     * Busca y retorna una lista de artistas cuyo nombre artístico coincida exactamente con el parámetro, ignorando mayúsculas y minúsculas.
+     *
+     * <p>Esta convención de nombre de método de Spring Data JPA se traduce a una consulta
+     * SQL que utiliza el campo {@code nombreArtistico} y aplica una comparación
+     * sin distinción entre mayúsculas y minúsculas.</p>
+     *
+     * @param nombresArtisticos El nombre artístico a buscar (ej. "SHAKIRA", "shakira").
+     * @return Una lista de {@link Artista} que coinciden con el nombre artístico.
+     */
+    List<Artista> findByNombreArtisticoInIgnoreCase(List<String> nombresArtisticos);
+
+
+    // Buscar si existe un artista con ese nombre artístico (sin distinguir mayúsculas/minúsculas)
+    boolean existsByNombreArtisticoIgnoreCase(String nombreArtistico);
 
 }
