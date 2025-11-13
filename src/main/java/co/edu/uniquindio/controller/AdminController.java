@@ -31,7 +31,7 @@ public class AdminController {
     /**
      * Endpoint para obtener la información básica de un admin por su ID.
      *
-     * @param idAmin ID único del admin, obtenido de la variable de ruta (PathVariable).
+     * @param idAdmin ID único del admin, obtenido de la variable de ruta (PathVariable).
      * @return {@code ResponseEntity} con el DTO del artista.
      * @throws ElementoNoEncontradoException Si el artista con el ID dado no existe.
      */

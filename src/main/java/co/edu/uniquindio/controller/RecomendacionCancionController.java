@@ -1,8 +1,8 @@
 package co.edu.uniquindio.controller;
 
 import co.edu.uniquindio.dto.MensajeDto;
-import co.edu.uniquindio.dto.PlayListDto;
-import co.edu.uniquindio.dto.RadioDto;
+import co.edu.uniquindio.dto.playList.PlayListDto;
+import co.edu.uniquindio.dto.playList.RadioDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.service.RecomendacionService;
 import lombok.RequiredArgsConstructor;

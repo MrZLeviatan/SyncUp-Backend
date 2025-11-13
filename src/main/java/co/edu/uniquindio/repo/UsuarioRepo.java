@@ -1,8 +1,11 @@
 package co.edu.uniquindio.repo;
 
+import co.edu.uniquindio.models.Persona;
 import co.edu.uniquindio.models.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 /**
  * Repositorio de persistencia para la entidad {@link Usuario}.
@@ -19,4 +22,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface UsuarioRepo extends JpaRepository<Usuario, Long> {
+
+
+    Optional<Usuario> findByUsername(String username);
 }

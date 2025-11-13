@@ -1,6 +1,6 @@
 package grafoSimilitudes;
 
-import co.edu.uniquindio.dto.RadioDto;
+import co.edu.uniquindio.dto.playList.RadioDto;
 import co.edu.uniquindio.dto.cancion.CancionDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.graph.GrafoDeSimilitud;

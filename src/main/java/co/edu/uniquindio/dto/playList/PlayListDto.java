@@ -1,4 +1,4 @@
-package co.edu.uniquindio.dto;
+package co.edu.uniquindio.dto.playList;
 
 import co.edu.uniquindio.dto.cancion.CancionDto;
 
