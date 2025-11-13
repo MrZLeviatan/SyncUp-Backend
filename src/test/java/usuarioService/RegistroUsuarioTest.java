@@ -2,11 +2,14 @@ package usuarioService;
 
 import co.edu.uniquindio.dto.usuario.RegistrarUsuarioDto;
 import co.edu.uniquindio.exception.ElementoRepetidoException;
+import co.edu.uniquindio.graph.GrafoDeSimilitud;
+import co.edu.uniquindio.graph.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
 import co.edu.uniquindio.repo.UsuarioRepo;
 import co.edu.uniquindio.service.impl.UsuarioServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -35,6 +38,9 @@ public class RegistroUsuarioTest {
     @InjectMocks
     private UsuarioServiceImpl usuarioService;
 
+    @Mock
+    private GrafoSocial grafoSocial;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -45,6 +51,7 @@ public class RegistroUsuarioTest {
 
     // Test 1: Registro exitoso de usuario
     @Test
+    @DisplayName("RegistroCliente: éxito - registro del cliente completado")
     void registrarUsuario_exitoso() throws ElementoRepetidoException {
 
         // Creamos el DTO de registro
@@ -76,6 +83,7 @@ public class RegistroUsuarioTest {
 
     // Test 2: Intentar registrar usuario duplicado
     @Test
+    @DisplayName("RegistroCliente: error - username ya registrado anteriormente")
     void registrarUsuario_usernameRepetido_lanzaExcepcion() {
 
         RegistrarUsuarioDto dto = new RegistrarUsuarioDto("Jane", "jane123", "abcd");

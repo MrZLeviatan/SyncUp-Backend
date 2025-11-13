@@ -3,7 +3,8 @@ package co.edu.uniquindio.service.impl;
 
 import co.edu.uniquindio.dto.usuario.SugerenciaUsuariosDto;
 import co.edu.uniquindio.dto.usuario.UsuarioConexionDto;
-import co.edu.uniquindio.exception.ElemenoNoEncontradoException;
+import co.edu.uniquindio.dto.usuario.UsuarioDto;
+import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.graph.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
@@ -76,10 +77,10 @@ public class UsuarioSocialServiceImpl implements UsuarioSocialService {
      * <p>Realiza la actualización tanto en el modelo de dominio (persistencia) como en el grafo en memoria.
      *
      * @param dto Objeto {@link UsuarioConexionDto} con los IDs de los usuarios.
-     * @throws ElemenoNoEncontradoException Si el usuario principal o el objetivo no existen.
+     * @throws ElementoNoEncontradoException Si el usuario principal o el objetivo no existen.
      */
     @Override
-    public void seguirUsuario(UsuarioConexionDto dto) throws ElemenoNoEncontradoException {
+    public void seguirUsuario(UsuarioConexionDto dto) throws ElementoNoEncontradoException {
 
         // Busca el usuario principal por su ID, lanza excepción si no existe.
         Usuario principal = obtenerUsuarioPorId(dto.idUsuarioPrincipal());
@@ -103,10 +104,10 @@ public class UsuarioSocialServiceImpl implements UsuarioSocialService {
      * <p>Actualiza la persistencia y el grafo para reflejar que un usuario ha dejado de seguir a otro.
      *
      * @param dto Objeto {@link UsuarioConexionDto} con los IDs de los usuarios.
-     * @throws ElemenoNoEncontradoException Si el usuario principal o el objetivo no existen.
+     * @throws ElementoNoEncontradoException Si el usuario principal o el objetivo no existen.
      */
     @Override
-    public void dejarDeSeguirUsuario(UsuarioConexionDto dto) throws ElemenoNoEncontradoException {
+    public void dejarDeSeguirUsuario(UsuarioConexionDto dto) throws ElementoNoEncontradoException {
         // Busca el usuario principal por su ID, lanza excepción si no existe.
         Usuario principal = obtenerUsuarioPorId(dto.idUsuarioPrincipal());
         // Busca el usuario objetivo (a seguir) por su ID.
@@ -131,10 +132,10 @@ public class UsuarioSocialServiceImpl implements UsuarioSocialService {
      *
      * @param idUsuario El ID del usuario para el cual se buscan las sugerencias.
      * @return Una {@code List} de {@link SugerenciaUsuariosDto} con los usuarios sugeridos.
-     * @throws ElemenoNoEncontradoException Si el usuario base no existe.
+     * @throws ElementoNoEncontradoException Si el usuario base no existe.
      */
     @Override
-    public List<SugerenciaUsuariosDto> obtenerSugerencias(Long idUsuario) throws ElemenoNoEncontradoException {
+    public List<SugerenciaUsuariosDto> obtenerSugerencias(Long idUsuario) throws ElementoNoEncontradoException {
 
         // Busca al usuario en la base de datos.
         Usuario usuario = obtenerUsuarioPorId(idUsuario);
@@ -150,15 +151,40 @@ public class UsuarioSocialServiceImpl implements UsuarioSocialService {
 
 
     /**
+     * Obtiene una lista de todos los usuarios que el usuario con el ID especificado está siguiendo actualmente.
+     *
+     * <p>El método utiliza el modelo de dominio para acceder a la lista de relaciones sociales del usuario.</p>
+     *
+     * @param idUsuario El identificador único del usuario principal.
+     * @return Una lista de {@link UsuarioDto} con la información de los usuarios seguidos.
+     * @throws ElementoNoEncontradoException Si el {@code idUsuario} no corresponde a un usuario existente.
+     */
+    @Override
+    public List<UsuarioDto> obtenerUsuariosSeguidos(Long idUsuario) throws ElementoNoEncontradoException {
+
+        // 1. Busca la entidad Usuario por su ID
+        Usuario usuario = obtenerUsuarioPorId(idUsuario);
+
+        // 2. Accede a la lista de usuarios que el usuario principal tiene registrados como 'seguidos'
+        List<Usuario> usuariosSeguidos = usuario.getListaUsuariosSeguidos();
+
+        // 3. Mapea la lista de entidades Usuario a una lista de DTOs antes de retornarla.
+        return usuariosSeguidos.stream()
+                .map(usuarioMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+
+    /**
      * Método auxiliar para buscar un usuario por ID o lanzar una excepción de negocio.
      *
      * @param idUsuario El ID del usuario a buscar.
      * @return El objeto {@link Usuario} si es encontrado.
-     * @throws ElemenoNoEncontradoException Si la entidad no se encuentra en la base de datos.
+     * @throws ElementoNoEncontradoException Si la entidad no se encuentra en la base de datos.
      */
-    private Usuario obtenerUsuarioPorId(Long idUsuario) throws ElemenoNoEncontradoException {
+    private Usuario obtenerUsuarioPorId(Long idUsuario) throws ElementoNoEncontradoException {
         // Busca al usuario mediante el ID en la base de datos.
         return  usuarioRepo.findById(idUsuario)
-                .orElseThrow(() -> new ElemenoNoEncontradoException("Usuario no encontrado"));
+                .orElseThrow(() -> new ElementoNoEncontradoException("Usuario no encontrado"));
     }
 }

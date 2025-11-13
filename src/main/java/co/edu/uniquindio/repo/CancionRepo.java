@@ -4,6 +4,7 @@ package co.edu.uniquindio.repo;
 import co.edu.uniquindio.models.Cancion;
 import co.edu.uniquindio.models.enums.GeneroMusical;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ import java.util.List;
  *
  * @see Cancion
  */
-public interface CancionRepo extends JpaRepository<Cancion, Long> {
+public interface CancionRepo extends JpaRepository<Cancion, Long>, JpaSpecificationExecutor<Cancion> {
 
 
     /**
@@ -46,4 +47,12 @@ public interface CancionRepo extends JpaRepository<Cancion, Long> {
      */
     List<Cancion> findByGeneroMusical(GeneroMusical genero);
 
+
+    /**
+     * Busca canciones cuyos títulos coincidan con alguno en la lista dada (ignorando mayúsculas/minúsculas).
+     *
+     * @param titulos Lista de títulos coincidentes.
+     * @return Lista de canciones encontradas.
+     */
+    List<Cancion> findByTituloInIgnoreCase(List<String> titulos);
 }

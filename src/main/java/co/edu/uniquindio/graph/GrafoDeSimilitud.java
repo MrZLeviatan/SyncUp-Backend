@@ -21,8 +21,8 @@ public class GrafoDeSimilitud {
 
     /**
      * Estructura principal del grafo: Lista de Adyacencia.
-     *
-     * <p>Mapea cada {@code Cancion} (nodo) a otro {@code Map} que contiene sus vecinos.
+     * <p>
+     * Mapea cada {@code Cancion} (nodo) a otro {@code Map} que contiene sus vecinos.
      * El {@code Map} interno asocia la {@code Cancion} vecina con el {@code Double} que representa el peso
      * de la arista (similitud/costo).
      */
@@ -40,6 +40,27 @@ public class GrafoDeSimilitud {
         adjList.putIfAbsent(cancion, new HashMap<>());
 
     }
+
+
+    /**
+     * Elimina una canción (nodo) del grafo junto con todas sus conexiones (aristas).
+     * <p>
+     *
+     * @param cancion La canción a eliminar del grafo. / The song to remove from the graph.
+     */
+    public void eliminarCancion(Cancion cancion) {
+        if (!adjList.containsKey(cancion)) return; // Si no existe, no hace nada.
+
+        // Eliminar todas las referencias a esta canción en los vecinos
+        for (Cancion vecino : adjList.get(cancion).keySet()) {
+            // Remueve la canción a eliminar de las listas de adyacencia de sus vecinos
+            adjList.get(vecino).remove(cancion);
+        }
+
+        // Finalmente, eliminar la propia canción del mapa principal
+        adjList.remove(cancion);
+    }
+
 
 
     /**

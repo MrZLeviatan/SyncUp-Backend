@@ -1,7 +1,7 @@
 package usuarioService;
 
 import co.edu.uniquindio.dto.usuario.EditarUsuarioDto;
-import co.edu.uniquindio.exception.ElemenoNoEncontradoException;
+import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
 import co.edu.uniquindio.repo.UsuarioRepo;
@@ -32,7 +32,7 @@ public class EditarUsuarioTest {
     }
 
     @Test
-    void editarUsuario_exitoso() throws ElemenoNoEncontradoException {
+    void editarUsuario_exitoso() throws ElementoNoEncontradoException {
         Usuario usuario = new Usuario();
         usuario.setUsername("user1");
         usuario.setNombre("Original");
