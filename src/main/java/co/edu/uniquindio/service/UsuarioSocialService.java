@@ -2,6 +2,7 @@ package co.edu.uniquindio.service;
 
 import co.edu.uniquindio.dto.usuario.SugerenciaUsuariosDto;
 import co.edu.uniquindio.dto.usuario.UsuarioConexionDto;
+import co.edu.uniquindio.dto.usuario.UsuarioDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 
 import java.util.List;
@@ -54,4 +55,13 @@ public interface UsuarioSocialService {
      * @throws ElementoNoEncontradoException Si el ID del usuario no existe.
      */
     List<SugerenciaUsuariosDto> obtenerSugerencias(Long idUsuario) throws ElementoNoEncontradoException;
+
+    /**
+     * Obtiene una lista de usuarios seguidos por el usuario seleccionado.
+     *
+     * @param idUsuario El ID del usuario para el cual se están buscando los usuarios seguidos
+     * @return Una {@code List} de {@link UsuarioDto} con la información de los usuarios seguidos.
+     * @throws ElementoNoEncontradoException Si el ID del usuario no existe.
+     */
+    List<UsuarioDto> obtenerUsuariosSeguidos(Long idUsuario) throws ElementoNoEncontradoException;
 }

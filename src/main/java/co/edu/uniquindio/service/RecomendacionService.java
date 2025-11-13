@@ -11,8 +11,7 @@ import co.edu.uniquindio.models.Usuario;
  * <p>Define las operaciones de alto nivel para generar contenido dinámico y personalizado,
  * como colas de reproducción tipo "Radio" y listas de descubrimiento semanal.
  *
- * <p>Este servicio típicamente hará uso del {@link co.edu.uniquindio.service.utils.SimilitudService}
- * y él {@link co.edu.uniquindio.graph.GrafoDeSimilitud} para obtener sus resultados.
+ * <p>Este servicio típicamente hará uso del {@link co.edu.uniquindio.graph.GrafoDeSimilitud} para obtener sus resultados.
  *
  * @see RadioDto
  * @see PlayListDto
@@ -41,9 +40,9 @@ public interface RecomendacionService {
      * y generar una {@code PlayList} con nuevas canciones que maximicen la similitud y la relevancia
      * con sus gustos actuales.
      *
-     * @param usuario El objeto {@link Usuario} para el cual se generará la playlist.
+     * @param idUsuario El objeto {@link Usuario} para el cual se generará la playlist.
      * @return Un objeto {@link PlayListDto} con el nombre y la lista de canciones recomendadas.
      */
-    PlayListDto generarDescubrimientoSemanal(Usuario usuario);
+    PlayListDto generarDescubrimientoSemanal(Long idUsuario) throws ElementoNoEncontradoException;
 
 }

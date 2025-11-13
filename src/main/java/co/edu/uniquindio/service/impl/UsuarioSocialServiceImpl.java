@@ -3,6 +3,7 @@ package co.edu.uniquindio.service.impl;
 
 import co.edu.uniquindio.dto.usuario.SugerenciaUsuariosDto;
 import co.edu.uniquindio.dto.usuario.UsuarioConexionDto;
+import co.edu.uniquindio.dto.usuario.UsuarioDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.graph.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
@@ -145,6 +146,31 @@ public class UsuarioSocialServiceImpl implements UsuarioSocialService {
         // Convierte cada entidad sugerida en su respectivo DTO.
         return sugeridos.stream()
                 .map(usuarioMapper::toDtoSugerenciaUsuarios)
+                .collect(Collectors.toList());
+    }
+
+
+    /**
+     * Obtiene una lista de todos los usuarios que el usuario con el ID especificado está siguiendo actualmente.
+     *
+     * <p>El método utiliza el modelo de dominio para acceder a la lista de relaciones sociales del usuario.</p>
+     *
+     * @param idUsuario El identificador único del usuario principal.
+     * @return Una lista de {@link UsuarioDto} con la información de los usuarios seguidos.
+     * @throws ElementoNoEncontradoException Si el {@code idUsuario} no corresponde a un usuario existente.
+     */
+    @Override
+    public List<UsuarioDto> obtenerUsuariosSeguidos(Long idUsuario) throws ElementoNoEncontradoException {
+
+        // 1. Busca la entidad Usuario por su ID
+        Usuario usuario = obtenerUsuarioPorId(idUsuario);
+
+        // 2. Accede a la lista de usuarios que el usuario principal tiene registrados como 'seguidos'
+        List<Usuario> usuariosSeguidos = usuario.getListaUsuariosSeguidos();
+
+        // 3. Mapea la lista de entidades Usuario a una lista de DTOs antes de retornarla.
+        return usuariosSeguidos.stream()
+                .map(usuarioMapper::toDto)
                 .collect(Collectors.toList());
     }
 

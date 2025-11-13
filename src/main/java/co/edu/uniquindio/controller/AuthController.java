@@ -28,6 +28,7 @@ public class AuthController {
         usuarioService.registroUsuario(registrarUsuarioDto);
 
         return ResponseEntity.ok().body(new MensajeDto<>(false,"Registro logrado exitosamente."));
-
     }
+
+
 }

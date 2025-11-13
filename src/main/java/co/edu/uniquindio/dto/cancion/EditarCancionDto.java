@@ -22,7 +22,6 @@ import java.time.LocalDate;
  */
 public record EditarCancionDto(
 
-
         Long id,
         String titulo,
         LocalDate fechaLanzamiento

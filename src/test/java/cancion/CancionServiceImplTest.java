@@ -2,6 +2,7 @@ package cancion;
 
 import co.edu.uniquindio.dto.cancion.RegistrarCancionDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
+import co.edu.uniquindio.graph.GrafoDeSimilitud;
 import co.edu.uniquindio.mapper.CancionMapper;
 import co.edu.uniquindio.models.Artista;
 import co.edu.uniquindio.models.Cancion;
@@ -10,6 +11,7 @@ import co.edu.uniquindio.repo.ArtistaRepo;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.service.impl.CancionServiceImpl;
 import co.edu.uniquindio.service.utils.CloudinaryService;
+import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -47,8 +49,15 @@ class CancionServiceImplTest {
     @Mock
     private MultipartFile imagenPortada;
 
+    @Mock
+    private GrafoDeSimilitud grafoDeSimilitud;
+
+
     @InjectMocks
     private CancionServiceImpl cancionService;
+
+
+
 
     private Artista artista;
     private RegistrarCancionDto dto;
@@ -57,6 +66,8 @@ class CancionServiceImplTest {
     @BeforeEach
     void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
+
+
 
         // Crear artista simulado
         artista = new Artista();
@@ -97,6 +108,8 @@ class CancionServiceImplTest {
         cancion.setGeneroMusical(dto.generoMusical());
         cancion.setFechaLanzamiento(dto.fechaLanzamiento());
     }
+
+
 
     @Test
     void agregarCancion_exitoso() throws Exception {

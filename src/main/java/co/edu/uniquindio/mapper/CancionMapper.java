@@ -70,9 +70,26 @@ public interface CancionMapper {
     Cancion toEntity(RegistrarCancionDto registrarCancionDto);
 
 
-
+    /**
+     * Actualiza una entidad {@link Cancion} existente con los datos proporcionados en el DTO de edición.
+     *
+     * <p>Esta operación es un *update* (actualización de entidad) de MapStruct. Se utiliza
+     * la anotación {@code @MappingTarget} para indicar que la entidad {@code cancion} es el
+     * destino de la actualización, conservando su identidad y relaciones no mapeadas.</p>
+     *
+     * <ul>
+     * <li>Ignorar ID: El mapeo ignora explícitamente el campo {@code id} del DTO de entrada
+     * para asegurar que el ID de la entidad de destino se mantenga inalterado, preservando
+     * la identidad de la canción.</li>
+     * <li>Actualización Parcial: Solo los campos presentes y no nulos en el {@code EditarCancionDto}
+     * actualizarán los valores correspondientes en la entidad {@code cancion}.</li>
+     * </ul>
+     *
+     * @param editarCancionDto DTO con los nuevos metadatos de la canción.
+     * @param cancion La entidad {@code Cancion} existente que será actualizada (destino del mapeo).
+     */
     @Mapping(target = "id", ignore = true)
-    void updateUsuarioFromDto(EditarCancionDto editarCancionDto, @MappingTarget Cancion cancion);
+    void updateCancionFromDto(EditarCancionDto editarCancionDto, @MappingTarget Cancion cancion);
 
 
 
