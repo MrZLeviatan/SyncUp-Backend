@@ -4,6 +4,7 @@ package co.edu.uniquindio.repo;
 import co.edu.uniquindio.models.Cancion;
 import co.edu.uniquindio.models.enums.GeneroMusical;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ import java.util.List;
  *
  * @see Cancion
  */
-public interface CancionRepo extends JpaRepository<Cancion, Long> {
+public interface CancionRepo extends JpaRepository<Cancion, Long>, JpaSpecificationExecutor<Cancion> {
 
 
     /**
