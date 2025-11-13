@@ -1,7 +1,7 @@
 package co.edu.uniquindio.service;
 
-import co.edu.uniquindio.dto.PlayListDto;
-import co.edu.uniquindio.dto.RadioDto;
+import co.edu.uniquindio.dto.playList.PlayListDto;
+import co.edu.uniquindio.dto.playList.RadioDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.models.Usuario;
 
@@ -13,7 +13,7 @@ import co.edu.uniquindio.models.Usuario;
  *
  * <p>Este servicio típicamente hará uso del {@link co.edu.uniquindio.graph.GrafoDeSimilitud} para obtener sus resultados.
  *
- * @see RadioDto
+ * @see playList
  * @see PlayListDto
  * @see Usuario
  */
@@ -27,7 +27,7 @@ public interface RecomendacionService {
      * de canciones relacionadas con la canción base, generando una secuencia adecuada para la reproducción continua.
      *
      * @param cancionId El ID de la {@link co.edu.uniquindio.models.Cancion} que servirá como punto de partida.
-     * @return Un objeto {@link RadioDto} que contiene el ID de la canción base y la lista
+     * @return Un objeto {@link playList} que contiene el ID de la canción base y la lista
      * de canciones subsiguientes en la cola de reproducción.
      */
     RadioDto iniciarRadio(Long cancionId) throws ElementoNoEncontradoException;

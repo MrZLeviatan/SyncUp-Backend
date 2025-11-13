@@ -1,8 +1,11 @@
 package co.edu.uniquindio.repo;
 
+import aj.org.objectweb.asm.commons.Remapper;
 import co.edu.uniquindio.models.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 /**
  * Repositorio de persistencia para la entidad {@link Admin} (Administrador).
@@ -20,4 +23,5 @@ public interface AdminRepo extends JpaRepository<Admin, Long> {
 
     boolean existsByUsername(String username);
 
+    Optional<Admin> findByUsername(String username);
 }

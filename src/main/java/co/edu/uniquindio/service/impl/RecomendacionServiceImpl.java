@@ -1,7 +1,7 @@
 package co.edu.uniquindio.service.impl;
 
-import co.edu.uniquindio.dto.PlayListDto;
-import co.edu.uniquindio.dto.RadioDto;
+import co.edu.uniquindio.dto.playList.PlayListDto;
+import co.edu.uniquindio.dto.playList.RadioDto;
 import co.edu.uniquindio.dto.cancion.CancionDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.graph.GrafoDeSimilitud;
@@ -100,7 +100,7 @@ public class RecomendacionServiceImpl implements RecomendacionService {
      * directamente desde él {@link GrafoDeSimilitud}.
      *
      * @param cancionId El ID de la canción que sirve como punto de partida.
-     * @return Un objeto {@link RadioDto} que contiene la cola de reproducción ordenada por similitud.
+     * @return Un objeto {@link playList} que contiene la cola de reproducción ordenada por similitud.
      * @throws ElementoNoEncontradoException Si la canción base no se encuentra en la base de datos.
      */
     @Override

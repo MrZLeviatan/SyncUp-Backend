@@ -1,6 +1,6 @@
 package grafoSimilitudes;
 
-import co.edu.uniquindio.dto.PlayListDto;
+import co.edu.uniquindio.dto.playList.PlayListDto;
 import co.edu.uniquindio.dto.cancion.CancionDto;
 import co.edu.uniquindio.graph.GrafoDeSimilitud;
 import co.edu.uniquindio.mapper.CancionMapper;
