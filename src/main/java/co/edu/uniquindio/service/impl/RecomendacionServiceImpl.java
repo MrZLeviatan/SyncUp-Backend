@@ -11,6 +11,9 @@ import co.edu.uniquindio.models.Usuario;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.repo.UsuarioRepo;
 import co.edu.uniquindio.service.RecomendacionService;
+import co.edu.uniquindio.utils.collections.MiLinkedList;
+import co.edu.uniquindio.utils.collections.MiMap;
+import co.edu.uniquindio.utils.collections.MiSet;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -78,18 +81,31 @@ public class RecomendacionServiceImpl implements RecomendacionService {
     /**
      * Calcula el peso de similitud entre dos canciones.
      *
+     * <p>Determina la afinidad entre dos canciones basándose en dos criterios:
+     * género musical (mayor peso) y artista principal. El valor retornado es un *costo*
+     * para el algoritmo de Dijkstra, donde un costo menor implica mayor similitud (mayor afinidad).</p>
+     *
      * @param c1 primera canción
      * @param c2 segunda canción
-     * @return peso (menor = más similar)
+     * @return peso El costo de la arista (menor = más similar) en el rango [0.0, 1.0].
      */
-    private double calcularPesoSimilitud(Cancion c1, Cancion c2) {
-        double similitud = 0.0;
+    private double calcularPesoSimilitud(Cancion c1, Cancion c2) { // Define el método que calcula el peso de la arista.
 
-        if (c1.getGeneroMusical().equals(c2.getGeneroMusical())) similitud += 0.6;
-        if (c1.getArtistaPrincipal().equals(c2.getArtistaPrincipal())) similitud += 0.4;
+        double similitud = 0.0; // Inicializa la variable de similitud acumulada a cero.
 
-        return 1 - similitud; // Convert similarity to cost / Convierte similitud a costo
+        // Compara el género musical de ambas canciones.
+        if (c1.getGeneroMusical().equals(c2.getGeneroMusical())) // Si los géneros son iguales:
+            similitud += 0.6; // Añade 0.6 a la similitud (es el factor más importante).
 
+        // Compara el artista principal de ambas canciones.
+        if (c1.getArtistaPrincipal().equals(c2.getArtistaPrincipal())) // Si los artistas son iguales:
+            similitud += 0.4; // Añade 0.4 a la similitud (es el factor secundario).
+
+        // La similitud estará en el rango [0.0 (totalmente diferente), 1.0 (totalmente igual)].
+        // Se invierte el valor para obtener el costo (peso de la arista) para el grafo:
+        // 1 - Similitud. Si Similitud = 1.0 (iguales), Costo = 0.0 (camino más fácil).
+        // Si Similitud = 0.0 (diferentes), Costo = 1.0 (camino más difícil).
+        return 1 - similitud; // Convierte similitud a costo, donde un valor menor es mejor para el grafo.
     }
 
 
@@ -100,7 +116,7 @@ public class RecomendacionServiceImpl implements RecomendacionService {
      * directamente desde él {@link GrafoDeSimilitud}.
      *
      * @param cancionId El ID de la canción que sirve como punto de partida.
-     * @return Un objeto {@link playList} que contiene la cola de reproducción ordenada por similitud.
+     * @return Un objeto {@link RadioDto} que contiene la cola de reproducción ordenada por similitud.
      * @throws ElementoNoEncontradoException Si la canción base no se encuentra en la base de datos.
      */
     @Override
@@ -111,11 +127,18 @@ public class RecomendacionServiceImpl implements RecomendacionService {
                 // Si no se encuentra, lanza una exceptión.
                 .orElseThrow(()-> new ElementoNoEncontradoException("Canción con ID:" + cancionId + "No encontrada"));
 
-        // 2. Obtiene los vecinos directos y los ordena por peso (costo).
-        Map<Cancion, Double> vecinos = grafo.obtenerVecinos(cancionBase);
+        // 2. Obtiene los vecinos directos (usa MiMap) y los ordena por peso (costo).
+        // Se usa el método modificado obtenerVecinos que retorna MiMap.
+        MiMap<Cancion, Double> vecinos = grafo.obtenerVecinos(cancionBase);
+
+        // Transforma los MiMap. Par en un Set de Map. Entry estándar de Java para poder usar Stream API.
+        Set<Map.Entry<Cancion, Double>> entrySet = new HashSet<>();
+        for (MiMap.Par<Cancion, Double> par : vecinos) {
+            entrySet.add(Map.entry(par.key, par.value));
+        }
 
         // Transforma los vecinos del mapa en una lista ordenada de canciones similares.
-        List<CancionDto> similares = vecinos.entrySet().stream()
+        List<CancionDto> similares = entrySet.stream()
                 .sorted(Map.Entry.comparingByValue()) // Ordenar: Menor peso (costo) = Mayor similitud
                 .limit(10)                 // Seleccionar las 10 mejores
                 .map(Map.Entry::getKey)              // Extraer la Cancion
@@ -137,7 +160,6 @@ public class RecomendacionServiceImpl implements RecomendacionService {
      * @param idUsuario El objeto {@link Usuario} para el cual se generará la playlist.
      * @return Un objeto {@link PlayListDto} con las canciones recomendadas.
      */
-    @Override
     public PlayListDto generarDescubrimientoSemanal(Long idUsuario) throws ElementoNoEncontradoException {
 
         // Se busca al usuario mediante su Id
@@ -147,21 +169,27 @@ public class RecomendacionServiceImpl implements RecomendacionService {
         // Se obtiene las canciones favoritas del usuario
         List<Cancion> favoritas = usuario.getCancionesFavoritas();
 
-        // Utiliza un Set para almacenar recomendaciones y evitar duplicados automáticamente.
+        // Utiliza un Set estándar de Java para almacenar recomendaciones y evitar duplicados automáticamente.
         Set<Cancion> recomendadas = new HashSet<>();
 
+        // Obtiene todas las canciones del grafo usando MiSet
+        MiSet<Cancion> todasLasCanciones = grafo.obtenerCanciones();
+
         // Itera sobre cada canción favorita para encontrar sus "vecinos".
-        // Por cada favorita, buscar 3 canciones más cercanas usando Dijkstra
+        // Por cada favorita, buscar las canciones más cercanas usando Dijkstra.
         for (Cancion favorita : favoritas) {
             // Esto permite comparar cada favorita con todas las demás canciones.
-            for (Cancion otra : grafo.obtenerCanciones()) {
+            // Se usa el iterador del MiSet.
+            for (Cancion otra : todasLasCanciones) {
                 // evita compararse consigo misma o no esté ya entre las favoritas del usuario.
                 if (!favorita.equals(otra) && !favoritas.contains(otra)) {
-                    // Se ejecuta el algoritmo de Dijkstra desde la canción favorita hasta otra canción del grafo.
-                    List<Cancion> camino = grafo.dijkstra(favorita, otra);
-                    // Esto significa que sí existe una ruta real entre la favorita y la otra canción.
+                    // Se ejecuta el algoritmo de Dijkstra que retorna MiLinkedList.
+                    MiLinkedList<Cancion> camino = grafo.dijkstra(favorita, otra);
+
+                    // Si la lista tiene más de un elemento, significa que sí existe una ruta real.
                     if (camino.size() > 1) {
-                        // Tomar la siguiente canción después de la favorita en el camino
+                        // Tomar la siguiente canción después de la favorita en el camino.
+                        // Usamos el método get() de MiLinkedList.
                         Cancion siguiente = camino.get(1);
                         // Se agrega esa canción al conjunto de recomendaciones.
                         recomendadas.add(siguiente);

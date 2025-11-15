@@ -6,6 +6,7 @@ import co.edu.uniquindio.graph.GrafoDeSimilitud;
 import co.edu.uniquindio.graph.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
+import co.edu.uniquindio.repo.AdminRepo;
 import co.edu.uniquindio.repo.UsuarioRepo;
 import co.edu.uniquindio.service.impl.UsuarioServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,9 @@ public class RegistroUsuarioTest {
 
     @Mock
     private UsuarioRepo usuarioRepo;
+
+    @Mock
+    private AdminRepo adminRepo;
 
     @Mock
     private PasswordEncoder passwordEncoder;

@@ -11,6 +11,7 @@ import co.edu.uniquindio.models.enums.GeneroMusical;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.repo.UsuarioRepo;
 import co.edu.uniquindio.service.impl.RecomendacionServiceImpl;
+import co.edu.uniquindio.utils.collections.MiMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -80,56 +81,58 @@ public class RecomendacionServiceIniciarRadioTest {
     @Test
     @DisplayName("✔ iniciarRadio: éxito - canción encontrada y vecinos generados")
     void testIniciarRadio_Exito() throws ElementoNoEncontradoException {
-        // Crea un artista ficticio
+
         Artista artista = new Artista(1L, "Daft Punk", new HashSet<>());
 
-        // Crea la canción base
         Cancion cancionBase = new Cancion(1L, "Harder Better", GeneroMusical.ELECTRONICA,
                 LocalDate.now(), "url", "mp3", "3:45", artista);
 
-        // Crea dos canciones vecinas simuladas
         Cancion vecino1 = new Cancion(2L, "One More Time", GeneroMusical.ELECTRONICA,
                 LocalDate.now(), "url", "mp3", "4:05", artista);
+
         Cancion vecino2 = new Cancion(3L, "Digital Love", GeneroMusical.ELECTRONICA,
                 LocalDate.now(), "url", "mp3", "5:00", artista);
 
-        // Simula la respuesta del repositorio: canción encontrada
+        // --- Mock repositorio canción
         when(cancionRepo.findById(1L)).thenReturn(Optional.of(cancionBase));
 
-        // Simula los vecinos en el grafo con sus pesos (0.2 más similar que 0.4)
-        Map<Cancion, Double> vecinos = new LinkedHashMap<>();
-        vecinos.put(vecino1, 0.2);
-        vecinos.put(vecino2, 0.4);
-        when(grafoMock.obtenerVecinos(cancionBase)).thenReturn(vecinos);
+        // --- Mock MiMap (vecinos)
+        MiMap<Cancion, Double> miMapMock = mock(MiMap.class);
+        when(grafoMock.obtenerVecinos(cancionBase)).thenReturn(miMapMock);
 
-        // Simula el mapeo Cancion → CancionDto
-        when(cancionMapper.toDto(any(Cancion.class))).thenAnswer(inv -> {
+        // --- Simular iteración sobre MiMap (en tu código se usa for(MiMap.Par...))
+        MiMap.Par<Cancion, Double> par1 = new MiMap.Par<>(vecino1, 0.2);
+        MiMap.Par<Cancion, Double> par2 = new MiMap.Par<>(vecino2, 0.4);
+
+        when(miMapMock.iterator()).thenReturn(List.of(par1, par2).iterator());
+
+        // --- Mock mapper
+        when(cancionMapper.toDto(any(Cancion.class))).then(inv -> {
             Cancion c = inv.getArgument(0);
-            return new CancionDto(c.getId(), c.getTitulo(), c.getGeneroMusical(),
-                    c.getFechaLanzamiento(), c.getUrlCancion(), c.getUrlPortada(),
-                    c.getArtistaPrincipal().getId());
+            return new CancionDto(
+                    c.getId(), c.getTitulo(), c.getGeneroMusical(),
+                    c.getFechaLanzamiento(), c.getUrlCancion(),
+                    c.getUrlPortada(), c.getArtistaPrincipal().getId()
+            );
         });
 
-        // Ejecuta el método
         RadioDto resultado = recomendacionService.iniciarRadio(1L);
 
-        // Verifica que la respuesta no sea nula
         assertNotNull(resultado);
-        // Verifica que el ID base sea correcto
         assertEquals(1L, resultado.idCancionBase());
-        // Verifica que la cola tenga los vecinos esperados
         assertEquals(2, resultado.colaReproduccion().size());
-        // Verifica el orden de las canciones (por similitud ascendente)
         assertEquals("One More Time", resultado.colaReproduccion().get(0).titulo());
         assertEquals("Digital Love", resultado.colaReproduccion().get(1).titulo());
     }
+
+
 
     /**
      * Prueba no funcional para verificar que se lance una excepción cuando
      * el ID de la canción no existe.
      */
     @Test
-    @DisplayName("⚠ iniciarRadio: error - canción no encontrada")
+    @DisplayName("iniciarRadio: error - canción no encontrada")
     void testIniciarRadio_CancionNoEncontrada() {
         // Simula que el repositorio no encuentra la canción
         when(cancionRepo.findById(99L)).thenReturn(Optional.empty());
