@@ -1,8 +1,8 @@
 package co.edu.uniquindio.graph;
 
+import co.edu.uniquindio.utils.collections.MiLinkedList;
+import co.edu.uniquindio.utils.collections.MiMap;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 /**
  * Clase que implementa un Árbol de Prefijos (Trie) para la función de autocompletado de títulos de canciones.
@@ -20,7 +20,6 @@ public class TrieAutocompletado {
     // Piensa en él como la primera página vacía de un índice.
     private final NodoTrie raiz;
 
-
     /**
      * Constructor del Trie.
      * <p> Inicializa la raíz como un nodo vacío, ya que la raíz no representa ninguna letra real,
@@ -29,7 +28,6 @@ public class TrieAutocompletado {
     public TrieAutocompletado() {
         raiz = new NodoTrie();
     }
-
 
     /**
      * Inserta una palabra (título de canción) dentro del Trie.
@@ -46,16 +44,18 @@ public class TrieAutocompletado {
         // Recorremos la palabra letra por letra. Convertimos a minúsculas para que la búsqueda sea insensible a mayúsculas/minúsculas.
         for (char c : palabra.toLowerCase().toCharArray()) {
 
-            // Si la letra actual ('c') no tiene un nodo hijo asociado al nodo actual, ¡lo creamos!
-            // Esto asegura que cada letra de la palabra tenga su propio lugar en el árbol.
-            actual.hijos.putIfAbsent(c, new NodoTrie());
+            // Intentar obtener el hijo asociado a este carácter usando MiMap.
+            NodoTrie hijo = actual.hijos.get(c);
 
-            // Una vez que sabemos que el nodo existe (ya sea nuevo o preexistente), avanzamos a él.
-            actual = actual.hijos.get(c);
+            if (hijo == null) { // Si el nodo hijo para este carácter no existe:
+                // Si no existe, crearlo.
+                hijo = new NodoTrie(); // Crea un nuevo nodo.
+                actual.hijos.put(c, hijo); // Asocia el carácter 'c' con el nuevo nodo hijo en el MiMap.
+            }
+
+            actual = hijo; // Se mueve al nodo hijo para la siguiente iteración.
         }
-
-        // Al finalizar el bucle, hemos llegado al final de la palabra.
-        // Marcamos este nodo final para indicar que la secuencia de letras hasta aquí forma una palabra completa.
+        // Cuando termina la palabra, marca el último nodo como fin de una palabra válida.
         actual.esFinDePalabra = true;
     }
 
@@ -69,31 +69,27 @@ public class TrieAutocompletado {
      * @param prefijo Prefijo que se desea autocompletar (ej. "ama").
      * @return Lista de palabras completas que comienzan con el prefijo dado (ej. ["amapola", "amargo"]).
      */
-    public List<String> autocompletar(String prefijo) {
+    public MiLinkedList<String> autocompletar(String prefijo) {
         // Empezamos desde la raíz para buscar el nodo donde termina el prefijo.
         NodoTrie nodo = raiz;
 
         // 1. Recorrer el Trie siguiendo las letras del prefijo.
         for (char c : prefijo.toLowerCase().toCharArray()) {
+            // Intenta obtener el siguiente nodo para el carácter actual 'c'.
+            NodoTrie siguiente = nodo.hijos.get(c);
 
-            // Si el nodo actual no tiene un hijo con la letra 'c', la búsqueda falla.
-            // Esto significa que no hay títulos que comiencen con este prefijo.
-            if (!nodo.hijos.containsKey(c)) {
-                return Collections.emptyList(); // Devolvemos una lista vacía.
+            if (siguiente == null) { // Si el siguiente nodo es nulo:
+                return new MiLinkedList<>(); // El prefijo no existe en el Trie, retorna una lista vacía.
             }
-            // Si la letra existe, avanzamos a ese nodo hijo para buscar la siguiente letra.
-            nodo = nodo.hijos.get(c);
+            nodo = siguiente; // Avanza al siguiente nodo del prefijo.
         }
 
-        // 2. Si llegamos hasta aquí, el prefijo completo existe. ¡Es hora de explorar las coincidencias!
-        List<String> resultados = new ArrayList<>();
-
-        // Llamamos a la función auxiliar 'dfs' (Búsqueda en Profundidad) para encontrar todas las palabras que se
-        // ramifican desde el nodo donde terminó el prefijo.
+        // Si el prefijo existe, explorar resultados
+        MiLinkedList<String> resultados = new MiLinkedList<>(); // Lista propia para almacenar las palabras encontradas.
+        // Inicia el DFS desde el último nodo alcanzado (final del prefijo).
         dfs(nodo, prefijo.toLowerCase(), resultados);
 
-        // Devolvemos la lista final de sugerencias.
-        return resultados;
+        return resultados; // Retorna la lista de palabras autocompletadas.
     }
 
 
@@ -107,22 +103,22 @@ public class TrieAutocompletado {
      * @param palabra Prefijo acumulado hasta el momento. En cada llamada, se añade una letra.
      * @param resultados Lista donde se guardan las palabras completas que se encuentran.
      */
-    private void dfs(NodoTrie nodo, String palabra, List<String> resultados) {
+    private void dfs(NodoTrie nodo, String palabra, MiLinkedList<String> resultados) {
 
         // Si el nodo actual marca el final de una palabra completa, la agregamos a los resultados.
         if (nodo.esFinDePalabra) {
+            // Añade la palabra construida hasta ahora a la lista de resultados.
             resultados.add(palabra);
         }
 
-        // Recorremos cada letra posible que puede continuar la palabra desde este nodo.
-        for (Map.Entry<Character, NodoTrie> entry : nodo.hijos.entrySet()) {
-
-            // Llamamos a la función recursivamente:
-            // 1. Pasamos el nodo hijo (entry.getValue()) como nuevo punto de partida.
-            // 2. Concatenamos la letra actual (entry.getKey()) a la palabra que estamos construyendo.
-            dfs(entry.getValue(), palabra + entry.getKey(), resultados);
+        // Recorrer todos los hijos usando el iterador del MiMap (MiMap.Par).
+        for (MiMap.Par<Character, NodoTrie> par : nodo.hijos) {
+            // Llamada recursiva:
+            // Continúa el DFS con el nodo hijo (par.value), añadiendo el carácter del hijo (par.key) a la palabra actual.
+            dfs(par.value, palabra + par.key, resultados);
         }
     }
+
 
     /**
      * Clase interna que representa la unidad básica (cada letra o paso) del Árbol de Prefijos.
@@ -131,11 +127,10 @@ public class TrieAutocompletado {
      */
     private static class NodoTrie {
 
-        // Mapa que almacena los nodos "hijos". La clave es el carácter (letra) y el valor es el siguiente nodo.
-        // Piensa en esto como un índice para saber qué camino tomar para cada letra siguiente.
-        Map<Character, NodoTrie> hijos = new HashMap<>();
+        // Mapa propio <Character, NodoTrie> para las transiciones.
+        MiMap<Character, NodoTrie> hijos = new MiMap<>();
 
-        // Indica si la secuencia de letras desde la raíz hasta este nodo forma una palabra completa y válida.
+        // Marca el final de una palabra válida (un nodo puede ser fin de palabra y tener hijos).
         boolean esFinDePalabra = false;
     }
 }

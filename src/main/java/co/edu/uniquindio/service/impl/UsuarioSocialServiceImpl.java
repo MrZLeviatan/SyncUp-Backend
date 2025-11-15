@@ -10,6 +10,7 @@ import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
 import co.edu.uniquindio.repo.UsuarioRepo;
 import co.edu.uniquindio.service.UsuarioSocialService;
+import co.edu.uniquindio.utils.collections.MiLinkedList;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -141,7 +142,7 @@ public class UsuarioSocialServiceImpl implements UsuarioSocialService {
         Usuario usuario = obtenerUsuarioPorId(idUsuario);
 
         // Obtiene una lista de usuarios sugeridos usando el grafo.
-        List<Usuario> sugeridos = grafoSocial.obtenerAmigosDeAmigos(usuario);
+        MiLinkedList<Usuario> sugeridos = grafoSocial.obtenerAmigosDeAmigos(usuario);
 
         // Convierte cada entidad sugerida en su respectivo DTO.
         return sugeridos.stream()

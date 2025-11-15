@@ -6,6 +6,7 @@ import co.edu.uniquindio.mapper.CancionMapper;
 import co.edu.uniquindio.models.Cancion;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.service.CancionBusquedaService;
+import co.edu.uniquindio.utils.collections.MiLinkedList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -66,7 +68,12 @@ public class CancionBusquedaServiceImpl implements CancionBusquedaService {
         inicializarTrie();
 
         // 1. Obtenemos las coincidencias de títulos exactos a partir del Trie (operación rápida en memoria).
-        List<String> coincidencias = trie.autocompletar(prefijo);
+        var coincidenciasMiLista = trie.autocompletar(prefijo);
+
+        // 1. Obtenemos las coincidencias de títulos exactos a partir del Trie (operación rápida en memoria).
+        // Convertir MiLinkedList → List de Java para usar Spring Data.
+        List<String> coincidencias = convertirMiLinkedList(coincidenciasMiLista);
+
 
         // 2. Si no hay coincidencias de títulos, devolvemos una lista de DTOs vacía.
         if (coincidencias.isEmpty()) {
@@ -80,6 +87,26 @@ public class CancionBusquedaServiceImpl implements CancionBusquedaService {
         return canciones.stream()
                 .map(cancionMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+
+    /**
+     * Convierte una lista enlazada propia (MiLinkedList) de Strings a una lista estándar de Java (ArrayList).
+     *
+     * <p>Esta conversión es necesaria para interactuar con las APIs de Java y Spring Data
+     * que esperan colecciones estándar.</p>
+     *
+     * @param lista La {@link MiLinkedList} de nombres artísticos a convertir.
+     * @return Una {@link java.util.List} de Strings con los mismos elementos.
+     */
+    private List<String> convertirMiLinkedList(MiLinkedList<String> lista) { // Método auxiliar para la conversión de tipos de lista.
+        List<String> resultado = new ArrayList<>(); // Inicializa una lista estándar (ArrayList) para el resultado.
+
+        for (String s : lista) { // Itera sobre la MiLinkedList usando su implementación de Iterable.
+            resultado.add(s); // Añade cada String de la lista propia a la lista estándar.
+        }
+
+        return resultado; // Retorna la lista estándar de Java.
     }
 
 

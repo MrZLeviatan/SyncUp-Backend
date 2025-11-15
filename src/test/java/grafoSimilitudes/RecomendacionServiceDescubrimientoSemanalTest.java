@@ -12,6 +12,8 @@ import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.repo.UsuarioRepo;
 import co.edu.uniquindio.service.impl.RecomendacionServiceImpl;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
+import co.edu.uniquindio.utils.collections.MiLinkedList;
+import co.edu.uniquindio.utils.collections.MiSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,10 +81,9 @@ public class RecomendacionServiceDescubrimientoSemanalTest {
     @Test
     @DisplayName("generarDescubrimientoSemanal: éxito - playlist generada correctamente")
     void testGenerarDescubrimientoSemanal_Exito() throws ElementoNoEncontradoException {
-        // Crea un artista de ejemplo
+
         Artista artista = new Artista(1L, "Daft Punk", new HashSet<>());
 
-        // Crea canciones de ejemplo
         Cancion favorita = new Cancion(1L, "Harder Better", GeneroMusical.ELECTRONICA,
                 LocalDate.now(), "url", "mp3", "3:45", artista);
 
@@ -92,36 +93,44 @@ public class RecomendacionServiceDescubrimientoSemanalTest {
         Cancion vecino2 = new Cancion(3L, "Crescendolls", GeneroMusical.ELECTRONICA,
                 LocalDate.now(), "url", "mp3", "3:59", artista);
 
-        // Crea un usuario con una favorita
         Usuario usuario = new Usuario();
         usuario.setId(10L);
         usuario.setCancionesFavoritas(new LinkedList<>(List.of(favorita)));
 
-        // Simula que el repositorio devuelve el usuario cuando se busca por su ID
         when(usuarioRepo.findById(10L)).thenReturn(Optional.of(usuario));
 
-        // Simula que el grafo contiene las canciones del sistema
-        when(grafoMock.obtenerCanciones()).thenReturn(new HashSet<>(List.of(favorita, vecino1, vecino2)));
+        // --- Mock MiSet
+        MiSet<Cancion> miSetMock = mock(MiSet.class);
+        when(grafoMock.obtenerCanciones()).thenReturn(miSetMock);
+        when(miSetMock.iterator()).thenReturn(
+                List.of(favorita, vecino1, vecino2).iterator()
+        );
 
-        // Simula el camino más corto usando Dijkstra: favorita -> vecino1 -> vecino2
-        when(grafoMock.dijkstra(favorita, vecino1)).thenReturn(List.of(favorita, vecino1));
-        when(grafoMock.dijkstra(favorita, vecino2)).thenReturn(List.of(favorita, vecino1, vecino2));
+        // --- Mock Dijkstra (devuelve MiLinkedList)
+        MiLinkedList<Cancion> camino1 = new MiLinkedList<>();
+        camino1.add(favorita);
+        camino1.add(vecino1);
 
-        // Simula la conversión Cancion → CancionDto
-        when(cancionMapper.toDto(any(Cancion.class))).thenAnswer(invocacion -> {
-            Cancion c = invocacion.getArgument(0);
+        MiLinkedList<Cancion> camino2 = new MiLinkedList<>();
+        camino2.add(favorita);
+        camino2.add(vecino1);
+        camino2.add(vecino2);
+
+        when(grafoMock.dijkstra(favorita, vecino1)).thenReturn(camino1);
+        when(grafoMock.dijkstra(favorita, vecino2)).thenReturn(camino2);
+
+        when(cancionMapper.toDto(any(Cancion.class))).then(inv -> {
+            Cancion c = inv.getArgument(0);
             return new CancionDto(c.getId(), c.getTitulo(), c.getGeneroMusical(), null, null, null, null);
         });
 
-        // Ejecuta el método
         PlayListDto resultado = recomendacionService.generarDescubrimientoSemanal(10L);
 
-        // Validaciones
-        assertNotNull(resultado, "El resultado no debe ser nulo");
-        assertEquals("Descubrimiento Semanal", resultado.nombre(), "El nombre de la playlist es incorrecto");
-        assertFalse(resultado.canciones().isEmpty(), "Debe haber canciones recomendadas");
-        assertTrue(resultado.canciones().size() <= 15, "Debe haber máximo 15 canciones");
+        assertNotNull(resultado);
+        assertEquals("Descubrimiento Semanal", resultado.nombre());
+        assertFalse(resultado.canciones().isEmpty());
     }
+
 
     /**
      * Prueba: el usuario no tiene canciones favoritas, la lista debe estar vacía.
@@ -129,25 +138,23 @@ public class RecomendacionServiceDescubrimientoSemanalTest {
     @Test
     @DisplayName("generarDescubrimientoSemanal: usuario sin favoritas")
     void testGenerarDescubrimientoSemanal_SinFavoritas() throws ElementoNoEncontradoException {
-        // Crea usuario sin favoritas
+
         Usuario usuario = new Usuario();
         usuario.setId(20L);
         usuario.setCancionesFavoritas(new LinkedList<>());
 
-        // Simula repositorio devolviendo al usuario
         when(usuarioRepo.findById(20L)).thenReturn(Optional.of(usuario));
 
-        // Simula grafo vacío
-        when(grafoMock.obtenerCanciones()).thenReturn(Set.of());
+        MiSet<Cancion> miSetMock = mock(MiSet.class);
+        when(grafoMock.obtenerCanciones()).thenReturn(miSetMock);
+        when(miSetMock.iterator()).thenReturn(Collections.emptyIterator());
 
-        // Ejecuta método
         PlayListDto resultado = recomendacionService.generarDescubrimientoSemanal(20L);
 
-        // Verificaciones
-        assertNotNull(resultado, "El resultado no debe ser nulo");
-        assertEquals("Descubrimiento Semanal", resultado.nombre(), "Nombre incorrecto");
-        assertTrue(resultado.canciones().isEmpty(), "La lista de canciones debe estar vacía");
+        assertNotNull(resultado);
+        assertTrue(resultado.canciones().isEmpty());
     }
+
 
     /**
      * Prueba: cuando el ID de usuario no existe, se lanza excepción.

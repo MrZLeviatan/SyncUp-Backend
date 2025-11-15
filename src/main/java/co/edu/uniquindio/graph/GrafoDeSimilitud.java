@@ -1,6 +1,9 @@
 package co.edu.uniquindio.graph;
 
 import co.edu.uniquindio.models.Cancion;
+import co.edu.uniquindio.utils.collections.MiLinkedList;
+import co.edu.uniquindio.utils.collections.MiMap;
+import co.edu.uniquindio.utils.collections.MiSet;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -26,7 +29,7 @@ public class GrafoDeSimilitud {
      * El {@code Map} interno asocia la {@code Cancion} vecina con el {@code Double} que representa el peso
      * de la arista (similitud/costo).
      */
-    private final Map<Cancion, Map<Cancion, Double>> adjList = new HashMap<>();
+    private final MiMap<Cancion, MiMap<Cancion, Double>> adjList = new MiMap<>();
 
 
     /**
@@ -36,9 +39,11 @@ public class GrafoDeSimilitud {
      * @param cancion La canción a agregar al grafo.
      */
     public void agregarCancion(Cancion cancion) {
-        // Si la canción no está en el grafo, la inserta con una lista de adyacencia vacía.
-        adjList.putIfAbsent(cancion, new HashMap<>());
-
+        // Verifica si la canción ya está en el grafo
+        if (adjList.get(cancion) == null) {
+            // Si no existe, agrega la canción con una lista de adyacencia vacía usando MiMap
+            adjList.put(cancion, new MiMap<>());
+        }
     }
 
 
@@ -49,18 +54,22 @@ public class GrafoDeSimilitud {
      * @param cancion La canción a eliminar del grafo. / The song to remove from the graph.
      */
     public void eliminarCancion(Cancion cancion) {
-        if (!adjList.containsKey(cancion)) return; // Si no existe, no hace nada.
+        // Verifica si la canción existe en el grafo
+        MiMap<Cancion, Double> vecinos = adjList.get(cancion);
+        if (vecinos == null) return; // Si no existe, no hace nada
 
-        // Eliminar todas las referencias a esta canción en los vecinos
-        for (Cancion vecino : adjList.get(cancion).keySet()) {
-            // Remueve la canción a eliminar de las listas de adyacencia de sus vecinos
-            adjList.get(vecino).remove(cancion);
+        // Itera sobre todos los vecinos usando el iterator de MiMap
+        for (MiMap.Par<Cancion, Double> par : vecinos) {
+            Cancion vecino = par.key;
+            // Remueve la canción de la lista de adyacencia del vecino
+            MiMap<Cancion, Double> vecinosDelVecino = adjList.get(vecino);
+            if (vecinosDelVecino != null) {
+                vecinosDelVecino.remove(cancion);
+            }
         }
-
-        // Finalmente, eliminar la propia canción del mapa principal
+        // Finalmente, elimina la canción del grafo
         adjList.remove(cancion);
     }
-
 
 
     /**
@@ -86,105 +95,144 @@ public class GrafoDeSimilitud {
      * Calcula la ruta de menor costo (mayor similitud) entre dos canciones usando el Algoritmo de Dijkstra.
      *
      * <p>Este método encuentra el "camino más fácil" para ir de una canción a otra, minimizando
-     * la suma de los pesos de las aristas (donde el peso es inversamente proporcional a la similitud).
+     * la suma de los pesos de las aristas (donde el peso es inversamente proporcional a la similitud).</p>
      *
      * @param origen La canción de inicio del camino.
      * @param destino La canción final del camino.
-     * @return Una {@code List<Cancion>} que representa la secuencia del camino más corto, o una lista
+     * @return Una {@code MiLinkedList<Cancion>} que representa la secuencia del camino más corto, o una lista
      * parcial si el destino es inalcanzable desde el origen.
      */
-    public List<Cancion> dijkstra(Cancion origen, Cancion destino) {
+    public MiLinkedList<Cancion> dijkstra(Cancion origen, Cancion destino) {
 
-        // Almacena la distancia mínima (costo) desde el origen a cada canción.
-        Map<Cancion, Double> dist = new HashMap<>();
+        // Mapa de distancias desde el origen a cada canción.
+        // Usamos 'MiMap' para almacenar: Canción -> Distancia (costo).
+        MiMap<Cancion, Double> dist = new MiMap<>();
 
-        // Guarda el nodo anterior para reconstruir el camino más corto.
-        Map<Cancion, Cancion> prev = new HashMap<>();
+        // Mapa de predecesores para reconstruir la ruta al final.
+        // Usamos 'MiMap' para almacenar: Canción_Actual -> Canción_Anterior_en_ruta.
+        MiMap<Cancion, Cancion> prev = new MiMap<>();
 
-        // Cola de prioridad que siempre extrae la canción con la menor distancia actual.
-        PriorityQueue<Cancion> pq = new PriorityQueue<>(Comparator.comparingDouble(dist::get));
+        // Inicializa todas las canciones del grafo con distancia máxima (simulando infinito).
+        // 'adjList' es la lista de adyacencia del grafo (Cancion -> MiMap<Cancion, Double>).
+        for (MiMap.Par<Cancion, MiMap<Cancion, Double>> par : adjList) {
+            dist.put(par.key, Double.MAX_VALUE); // Asigna distancia infinita a todas las canciones iniciales.
+        }
 
-        // 1. Inicializa todas las canciones con distancia máxima (infinito).
-        for (Cancion c : adjList.keySet()) dist.put(c, Double.MAX_VALUE);
-
-        // La distancia del origen a sí mismo es cero.
+        // La distancia del origen a sí mismo es cero (punto de partida del algoritmo).
         dist.put(origen, 0.0);
 
-        // Inserta el nodo origen en la cola de prioridad.
-        pq.add(origen);
+        // Conjunto de canciones ya procesadas y con su distancia mínima finalizada.
+        // Usamos 'MiSet' para una verificación rápida de visitados (aunque el add es O(n)).
+        MiSet<Cancion> visitados = new MiSet<>();
 
-        // 2. Mientras existan nodos por procesar...
-        while (!pq.isEmpty()) {
+        // Conjunto de canciones pendientes por procesar (similar a una cola de prioridad, pero implementada como Set/List).
+        MiSet<Cancion> pendientes = new MiSet<>();
+        pendientes.add(origen); // Agrega la canción de origen para comenzar el procesamiento.
 
-            // Extrae la canción con la menor distancia.
-            Cancion actual = pq.poll();
+        while (true) { // Bucle principal del algoritmo de Dijkstra.
+            // Encontrar la canción con la menor distancia en el conjunto de pendientes.
+            Cancion actual = null; // Variable para almacenar el nodo seleccionado en esta iteración.
+            double minDist = Double.MAX_VALUE; // Variable para rastrear la menor distancia encontrada.
 
-            // Si llegamos al destino, podemos detenernos.
-            if (actual.equals(destino)) break;
+            // Simulación de extracción del mínimo: se recorre todo el conjunto pendiente.
+            for (Cancion c : pendientes) { // Itera sobre las canciones pendientes.
+                double d = dist.get(c); // Obtiene la distancia actual de la canción pendiente.
+                if (d < minDist) { // Compara si la distancia es menor que la mínima actual.
+                    minDist = d; // Actualiza la distancia mínima.
+                    actual = c; // Asigna la canción como el nodo actual a procesar.
+                }
+            }
+
+            if (actual == null) break; // Si no se encontró ningún nodo, significa que no quedan nodos por procesar (lista vacía).
+
+            pendientes.remove(actual); // Elimina la canción seleccionada de los pendientes.
+            visitados.add(actual); // Marca la canción como visitada/procesada.
+
+            if (actual.equals(destino)) break; // Si el nodo actual es el destino, se encontró la ruta más corta y se termina.
 
             // Itera por todos los vecinos de la canción actual.
-            for (Map.Entry<Cancion, Double> vecino : adjList.get(actual).entrySet()) {
+            // Se obtiene el mapa de adyacencia (vecinos y sus pesos) desde adjList.
+            MiMap<Cancion, Double> vecinos = adjList.get(actual);
+            if (vecinos == null) continue; // Si la canción no tiene vecinos, salta a la siguiente iteración del while.
 
-                // Calcula la nueva posible distancia (costo).
-                double nuevaDist = dist.get(actual) + vecino.getValue();
+            // Itera sobre los pares (Vecino -> Peso) del mapa de adyacencia.
+            for (MiMap.Par<Cancion, Double> vecino : vecinos) {
+                // Si el vecino ya está visitado, se ignora.
+                if (visitados.contains(vecino.key)) continue;
 
-                // Si la nueva distancia es menor que la actual...
-                if (nuevaDist < dist.get(vecino.getKey())) {
+                // Calcula la nueva distancia potencial: distancia del actual + peso de la arista.
+                double nuevaDist = dist.get(actual) + vecino.value;
 
-                    // Actualiza la distancia con la menor.
-                    dist.put(vecino.getKey(), nuevaDist);
-
-                    // Establece la canción actual como predecesora del vecino.
-                    prev.put(vecino.getKey(), actual);
-
-                    // Añade el vecino a la cola de prioridad para procesarlo después.
-                    pq.add(vecino.getKey());
+                // Comprueba si el vecino aún no tiene distancia (es null) o si la nueva ruta es mejor.
+                if (dist.get(vecino.key) == null || nuevaDist < dist.get(vecino.key)) {
+                    dist.put(vecino.key, nuevaDist); // Actualiza la distancia del vecino con la nueva distancia menor.
+                    prev.put(vecino.key, actual); // Establece el nodo actual como el predecesor del vecino.
+                    pendientes.add(vecino.key); // Añade el vecino a la lista de pendientes para su procesamiento (si no estaba).
                 }
             }
         }
 
-        // --- Reconstruir la ruta encontrada usando el mapa 'prev' ---
+        // --------------------------------------------------------------------------------------
+        // Reconstrucción de la Ruta
+        // --------------------------------------------------------------------------------------
 
-        // 3. Crea una lista para almacenar la ruta (camino).
-        List<Cancion> ruta = new LinkedList<>();
+        // Reconstruir la ruta encontrada usando el mapa 'prev'.
+        MiLinkedList<Cancion> ruta = new MiLinkedList<>(); // Lista temporal para construir la ruta al revés.
+        Cancion paso = destino; // Inicia la reconstrucción desde el destino.
 
-        // Empieza desde el nodo destino.
-        Cancion paso = destino;
-
+        // Itera hacia atrás usando el mapa de predecesores.
         while (paso != null) {
-
-            // Añade la canción actual al inicio de la lista.
-            ruta.addFirst(paso);
-
-            // Avanza a la canción anterior en el camino.
-            paso = prev.get(paso);
+            ruta.add(paso); // Añade el nodo actual al final de la lista temporal.
+            paso = prev.get(paso); // Obtiene el predecesor del nodo actual.
         }
 
-        // Devuelve la ruta completa desde el origen hasta el destino.
-        return ruta;
+        // Invertir la ruta para que vaya de origen a destino (actualmente está de destino a origen).
+        MiLinkedList<Cancion> rutaFinal = new MiLinkedList<>(); // Lista final con la secuencia correcta.
+
+        // Itera la lista temporal desde el final hasta el inicio.
+        for (int i = ruta.size() - 1; i >= 0; i--) {
+            rutaFinal.add(ruta.get(i)); // Añade los elementos en orden inverso para obtener el camino correcto.
+        }
+
+        return rutaFinal; // Retorna la lista con la ruta de menor costo.
     }
 
 
     /**
      * Devuelve el conjunto de todas las canciones (nodos) presentes en el grafo.
      *
-     * @return Un {@code Set} inmutable de todas las {@code Cancion}es.
+     * <p>El método delega la obtención de las claves al método {@code keySet()} de la lista
+     * de adyacencia interna del grafo.</p>
+     *
+     * @return Un {@link MiSet} de todas las {@code Cancion}es (nodos) del grafo.
      */
-    public Set<Cancion> obtenerCanciones() {
+    public MiSet<Cancion> obtenerCanciones() {
 
         // Devuelve el conjunto de todas las llaves (canciones) en la lista de adyacencia.
-        return adjList.keySet();
+        // Se asume que 'adjList' es un MiMap<Cancion, MiMap<Cancion, Double>> donde las claves son las canciones del grafo.
+        return adjList.keySet(); // Llama al método keySet() del MiMap interno (adjList) y retorna el MiSet de canciones.
     }
+
 
     /**
      * Devuelve los vecinos directos de una canción dada y el peso de las aristas que los conectan.
      *
+     * <p>Este método consulta la lista de adyacencia del grafo para encontrar las conexiones
+     * de la canción especificada.</p>
+     *
      * @param cancion La canción de la que se buscan los vecinos.
-     * @return Un {@code Map} de vecinos y sus pesos; un mapa vacío si la canción no está en el grafo.
+     * @return Un {@link MiMap} de vecinos (Canción) y sus pesos (Double); un mapa vacío si la canción no está en el grafo.
      */
-    public Map<Cancion, Double> obtenerVecinos(Cancion cancion) {
+    public MiMap<Cancion, Double> obtenerVecinos(Cancion cancion) {
 
-        // Si la canción existe, devuelve sus vecinos; de lo contrario, devuelve un mapa vacío.
-        return adjList.getOrDefault(cancion, Collections.emptyMap());
+        // Intenta obtener el mapa de adyacencia de la canción desde la lista de adyacencia (adjList).
+        // Se asume que adjList es un MiMap<Cancion, MiMap<Cancion, Double>>.
+        MiMap<Cancion, Double> vecinos = adjList.get(cancion);
+
+        // Usa el operador ternario para verificar el resultado:
+        // Si 'vecinos' no es null (la canción existe), retorna el mapa de vecinos.
+        // Si 'vecinos' es null (la canción no existe o no tiene vecinos en la estructura principal), retorna un nuevo MiMap vacío.
+        return (vecinos != null) ? vecinos : new MiMap<>();
     }
+
 }
