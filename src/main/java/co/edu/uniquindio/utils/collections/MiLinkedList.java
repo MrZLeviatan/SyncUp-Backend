@@ -167,6 +167,67 @@ public class MiLinkedList<T> implements Iterable<T> {
 
 
     /**
+     * Elimina y retorna el primer elemento de la lista.
+     *
+     * <p>Esta operación es eficiente, con una complejidad temporal de O(1), ya que solo
+     * requiere modificar la referencia al nodo cabeza (head).</p>
+     *
+     * @return el valor del primer nodo eliminado.
+     * @throws IllegalStateException si la lista está vacía ({@code head} es null).
+     */
+    public T removeFirst() { // Define el método para eliminar y retornar el primer elemento.
+        if (head == null) { // 1. Condición de guarda: verifica si la lista está vacía.
+            // 2. Si está vacía, lanza una excepción de estado ilegal.
+            throw new IllegalStateException("La lista está vacía / List is empty");
+        }
+
+        T valor = head.valor; // 3. Almacena temporalmente el valor del nodo cabeza a retornar.
+        head = head.siguiente; // 4. Mueve la referencia 'head' al siguiente nodo (efectivamente eliminando el nodo anterior).
+        size--; // 5. Decrementa el contador de tamaño.
+        return valor; // 6. Retorna el valor del nodo que fue eliminado.
+    }
+
+
+
+    /**
+     * Indica si la lista enlazada está vacía.
+     *
+     * <p>La lista se considera vacía si su nodo cabeza (head) es {@code null}.</p>
+     *
+     * @return {@code true} si la lista no contiene elementos (head es null), {@code false} en caso contrario.
+     */
+    public boolean isEmpty() { // Define el método booleano para verificar si la lista está vacía.
+        // Retorna true si la cabeza es null (lista vacía), o false si hay al menos un nodo.
+        return head == null;
+    }
+
+
+    /**
+     * Devuelve un {@code Stream<T>} sobre los elementos de la lista.
+     *
+     * <p>Crea una copia de los elementos en una {@link java.util.ArrayList} estándar
+     * de Java y luego retorna el {@code Stream} de esa lista temporal.</p>
+     *
+     * @return Un {@link java.util.stream.Stream} secuencial de los elementos de la lista.
+     */
+    public java.util.stream.Stream<T> stream() { // Define el método que retorna un Stream.
+
+        // 1. Crea una lista temporal estándar de Java (ArrayList) con capacidad inicial igual al tamaño actual de MiLinkedList.
+        java.util.List<T> listaTemporal = new java.util.ArrayList<>(size);
+
+        // 2. Itera sobre la lista enlazada propia (MiLinkedList) usando el iterator que ya está implementado.
+        for (T elemento : this) {
+            // 3. Añade cada elemento de la MiLinkedList a la lista temporal de Java.
+            listaTemporal.add(elemento);
+        }
+
+        // 4. Retorna el Stream nativo de Java de la lista temporal.
+        return listaTemporal.stream();
+    }
+
+
+
+    /**
      * Retorna un iterator sobre los elementos de esta lista en la secuencia correcta.
      *
      * @return Un objeto {@link Iterator} para recorrer la lista.

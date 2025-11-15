@@ -1,6 +1,9 @@
 package co.edu.uniquindio.graph;
 
 import co.edu.uniquindio.models.Usuario;
+import co.edu.uniquindio.utils.collections.MiLinkedList;
+import co.edu.uniquindio.utils.collections.MiMap;
+import co.edu.uniquindio.utils.collections.MiSet;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -29,21 +32,27 @@ public class GrafoSocial {
      * <li>Valor ({@code Set<Usuario>}): Conjunto de vecinos directamente conectados.</li>
      * </ul>
      */
-    private final Map<Usuario, Set<Usuario>> adyacencias = new HashMap<>();
+    private final MiMap<Usuario, MiSet<Usuario>> adyacencias = new MiMap<>();
 
 
     /**
-     * Agrega un {@link Usuario} (nodo) al grafo.
+     * Agrega un usuario (nodo) al grafo.
      *
-     * <p>Si el usuario ya existe, el método no realiza ninguna acción. Si es nuevo,
-     * lo inicializa con un conjunto vacío de adyacencias.
+     * <p>Si el usuario ya existe como clave en el mapa de adyacencias, la operación se ignora.
+     * Si es un usuario nuevo, se le asocia un {@link MiSet} vacío que almacenará los {@link Usuario}s
+     * que sigue, sirviendo como su lista de adyacencia.</p>
      *
-     * @param usuario El usuario a agregar.
+     * @param usuario El usuario a agregar al grafo.
      */
-    public void agregarUsuario(Usuario usuario) {
-        // putIfAbsent agrega al mapa solo si no existe una entrada con esa clave (usuario).
-        adyacencias.putIfAbsent(usuario, new HashSet<>());
-        // Si ya existe, no hace nada; si no, crea un nuevo conjunto vacío de conexiones.
+    public void agregarUsuario(Usuario usuario) { // Define el método para agregar un usuario al grafo.
+
+        // Comprobación de existencia: Si la clave 'usuario' ya existe en el mapa de adyacencias.
+        if (adyacencias.get(usuario) != null) { // Usa el método get() de MiMap para verificar si el usuario ya está mapeado.
+            return; // Si el usuario ya existe, termina el método sin hacer cambios.
+        }
+
+        // Si no existe, creamos su conjunto de adyacencias (MiSet propio).
+        adyacencias.put(usuario, new MiSet<>()); // Usa el método put() de MiMap para añadir el usuario como clave, asociándolo a un nuevo MiSet vacío.
     }
 
 
@@ -72,90 +81,105 @@ public class GrafoSocial {
     /**
      * Elimina la conexión (arista) entre dos usuarios.
      *
-     * <p>Elimina la relación en ambas direcciones (u1 a u2 y u2 a u1).
+     * <p>Dado que se asume un grafo no dirigido (o de doble sentido en la adyacencia),
+     * la operación de desconexión se realiza en ambas direcciones: eliminando a u2 de la lista
+     * de adyacencia de u1, y eliminando a u1 de la lista de adyacencia de u2.</p>
      *
-     * @param u1 Primer usuario involucrado.
-     * @param u2 Segundo usuario involucrado.
+     * @param u1 Primer usuario (nodo).
+     * @param u2 Segundo usuario (nodo).
      */
-    public void desconectarUsuarios(Usuario u1, Usuario u2) {
-        // Verifica si u1 está presente en el grafo y elimina la conexión hacia u2.
-        if (adyacencias.containsKey(u1)) adyacencias.get(u1).remove(u2);
-        // Verifica si u2 está presente y elimina la conexión hacia u1.
-        if (adyacencias.containsKey(u2)) adyacencias.get(u2).remove(u1);
+    public void desconectarUsuarios(Usuario u1, Usuario u2) { // Define el método para eliminar la arista entre dos usuarios.
+
+        /* Buscamos el conjunto de vecinos para u1 */
+        // Intenta obtener el MiSet de usuarios vecinos de u1 desde el mapa de adyacencias.
+        MiSet<Usuario> vecinosU1 = adyacencias.get(u1);
+
+        if (vecinosU1 != null) { // Verifica si u1 existe en el grafo (si su lista de vecinos no es null).
+            // Llama al método remove() de MiSet para eliminar a u2 del conjunto de vecinos de u1.
+            vecinosU1.remove(u2);
+        }
+
+
+        /* Buscamos el conjunto de vecinos para u2 */
+        // Intenta obtener el MiSet de usuarios vecinos de u2 desde el mapa de adyacencias.
+        MiSet<Usuario> vecinosU2 = adyacencias.get(u2);
+
+        if (vecinosU2 != null) { // Verifica si u2 existe en el grafo.
+            // Llama al método remove() de MiSet para eliminar a u1 del conjunto de vecinos de u2.
+            vecinosU2.remove(u1);
+        }
+        // Dado que el grafo es no dirigido, con esto la desconexión queda completa.
     }
 
 
     /**
-     * Realiza un recorrido de Búsqueda en Amplitud (Breadth-First Search, BFS) para encontrar sugerencias de amistad.
+     * Obtiene los amigos de los amigos (distancia exactamente 2) usando el algoritmo BFS.
      *
-     * <p>Identifica a los usuarios que están exactamente a una distancia de *dos aristas* del usuario origen
-     * (los "amigos de amigos"). El algoritmo asegura que los usuarios directamente conectados (distancia 1)
-     * y el propio origen no sean incluidos en la lista de sugerencias.
+     * <p>El método realiza un recorrido BFS limitado para encontrar todos los usuarios
+     * que no son amigos directos del {@code origen} ni el {@code origen} mismo, pero que están
+     * conectados a un amigo del {@code origen} (distancia = 2).</p>
      *
-     * @param origen Él {@link Usuario} desde el cual se inicia la búsqueda.
-     * @return Una {@code List<Usuario>} que contiene los usuarios sugeridos (distancia 2).
+     * @param origen Usuario inicial (nodo de partida) del que se buscan sugerencias.
+     * @return Una {@link MiLinkedList} con las sugerencias de amistad (usuarios a distancia 2).
      */
-    public List<Usuario> obtenerAmigosDeAmigos(Usuario origen) {
-        // Si el usuario no está en el grafo, devuelve una lista vacía (no hay conexiones).
-        if (!adyacencias.containsKey(origen)) return Collections.emptyList();
+    public MiLinkedList<Usuario> obtenerAmigosDeAmigos(Usuario origen) { // Define el método que usa BFS para hallar amigos de amigos.
 
-        // Conjunto que almacenará los usuarios ya visitados (para evitar ciclos).
-        Set<Usuario> visitados = new HashSet<>();
+        // --- Verificar si el origen existe en el grafo --- //
+        /* Si no existe en el MiMap, no hay conexiones */
+        // Intenta obtener el MiSet de vecinos del usuario origen.
+        MiSet<Usuario> vecinosOrigen = adyacencias.get(origen);
+        if (vecinosOrigen == null) { // Si el usuario origen no está en el mapa de adyacencias.
+            return new MiLinkedList<>(); // Retorna una lista vacía, ya que no tiene conexiones.
+        }
 
-        // Cola utilizada para recorrer el grafo en anchura (BFS).
-        Queue<Usuario> cola = new LinkedList<>();
+        // --- Estructuras para BFS (Todas usan colecciones propias) --- //
+        MiSet<Usuario> visitados = new MiSet<>();     // Conjunto para rastrear nodos ya visitados y evitar ciclos.
+        MiLinkedList<Usuario> cola = new MiLinkedList<>();  // Cola FIFO para el proceso BFS.
+        MiMap<Usuario, Integer> distancia = new MiMap<>();  // Mapa para almacenar la distancia (nivel) de cada nodo desde el origen.
 
-        // Mapa que guarda la distancia (nivel) de cada usuario respecto al origen.
-        Map<Usuario, Integer> distancia = new HashMap<>();
+        // --- Inicialización del BFS --- //
+        cola.add(origen);            // Agrega el nodo de origen a la cola para empezar el recorrido.
+        distancia.put(origen, 0);    // Asigna distancia 0 al nodo de origen.
+        visitados.add(origen);       // Marca el nodo de origen como visitado.
 
-        // Se inicializa el recorrido agregando el usuario origen en la cola.
-        cola.add(origen);
+        MiLinkedList<Usuario> sugerencias = new MiLinkedList<>(); // Lista donde se almacenarán los resultados (usuarios a distancia 2).
 
-        // La distancia del usuario origen a sí mismo es 0.
-        distancia.put(origen, 0);
+        // --- BFS --- //
+        while (!cola.isEmpty()) { // Mientras la cola no esté vacía.
 
-        // Marca el usuario origen como visitado.
-        visitados.add(origen);
+            Usuario actual = cola.removeFirst();      // Saca el primer nodo de la cola (operación O(1)).
+            Integer nivelActual = distancia.get(actual); // Obtiene el nivel (distancia) del nodo que se acaba de sacar.
 
-        // Lista donde se almacenarán los usuarios sugeridos (nivel 2 del BFS).
-        List<Usuario> sugerencias = new ArrayList<>();
+            if (nivelActual == null) continue; // Manejo de seguridad, aunque la inicialización garantiza que no será null.
+            if (nivelActual >= 2) continue;           // Poda: No se necesita explorar nodos más allá del nivel 2.
 
-        // Mientras haya elementos en la cola (usuarios por explorar)...
-        while (!cola.isEmpty()) {
+            // Obtener vecinos del usuario actual
+            MiSet<Usuario> vecinos = adyacencias.get(actual); // Obtiene el MiSet de vecinos del nodo actual.
+            if (vecinos == null) continue;            // Si no tiene vecinos (aunque debería tener al menos si nivel > 0), continúa.
 
-            // Extrae el siguiente usuario de la cola (FIFO).
-            Usuario actual = cola.poll();
+            // Itera sobre todos los vecinos del nodo actual (distancia nivelActual + 1).
+            for (Usuario vecino : vecinos) {
 
-            // Obtiene la distancia actual desde el origen hasta este usuario.
-            int nivel = distancia.get(actual);
-
-            if (nivel >= 2) continue; // Solo buscamos hasta distancia 2
-
-            // Recorre todos los vecinos (usuarios conectados) del usuario actual.
-            for (Usuario vecino : adyacencias.getOrDefault(actual, Set.of())) {
-
-                // Si el vecino aún no ha sido visitado...
+                // Si el vecino aún no se ha visitado.
                 if (!visitados.contains(vecino)) {
 
-                    // Registra su distancia (nivel actual + 1).
-                    distancia.put(vecino, nivel + 1);
+                    int nuevoNivel = nivelActual + 1; // Calcula la distancia del vecino (nivel + 1).
+                    distancia.put(vecino, nuevoNivel); // Almacena la nueva distancia en el mapa.
 
-                    // Encola al vecino para continuar el recorrido BFS.
-                    cola.add(vecino);
+                    cola.add(vecino);     // Encola el vecino.
+                    visitados.add(vecino); // Marca el vecino como visitado.
 
-                    // Marca al vecino como visitado.
-                    visitados.add(vecino);
-
-                    // Si el vecino está exactamente a distancia 2, lo consideramos “amigo de amigo”.
-                    if (distancia.get(vecino) == 2) {
-                        sugerencias.add(vecino);
+                    // Condición de resultado: Si está exactamente a distancia 2.
+                    if (nuevoNivel == 2) {
+                        sugerencias.add(vecino); // Agrega el vecino a la lista de sugerencias.
                     }
                 }
             }
         }
-        // Devuelve la lista final de usuarios sugeridos (nivel 2 del recorrido BFS).
-        return sugerencias;
+
+        return sugerencias; // Retorna la lista de usuarios encontrados a distancia 2.
     }
+
 
 
     /**
@@ -163,7 +187,7 @@ public class GrafoSocial {
      *
      * @return Un {@code Map} que representa el grafo completo.
      */
-    public Map<Usuario, Set<Usuario>> obtenerEstructura() {
+    public MiMap<Usuario, MiSet<Usuario>> obtenerEstructura() {
         // Retorna el mapa completo con todos los usuarios y sus conexiones.
         return adyacencias;
     }
