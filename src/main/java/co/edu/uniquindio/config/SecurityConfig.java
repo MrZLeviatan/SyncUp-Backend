@@ -78,7 +78,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 // Manejo de errores de autenticación
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(new AuthenticationEntryPoint()))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))
+
                 // Filtro JWT antes de auth por usuario/clave
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

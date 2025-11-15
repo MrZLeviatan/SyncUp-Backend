@@ -14,6 +14,7 @@ import co.edu.uniquindio.utils.collections.MiLinkedList;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,9 +54,11 @@ public class UsuarioSocialServiceImpl implements UsuarioSocialService {
      * subsecuentes búsquedas de sugerencias.
      */
     @PostConstruct
+    @Transactional
     public void inicializarGrafo() {
         // Obtiene todos los usuarios desde el repositorio (base de datos).
-        List<Usuario> usuarios = usuarioRepo.findAll();
+        List<Usuario> usuarios = usuarioRepo.findAllConUsuariosSeguidos();
+
 
         // Agrega cada usuario como nodo dentro del grafo.
         usuarios.forEach(grafoSocial::agregarUsuario);
