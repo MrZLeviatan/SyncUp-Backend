@@ -8,9 +8,11 @@ import co.edu.uniquindio.mapper.ArtistaMapper;
 import co.edu.uniquindio.models.Artista;
 import co.edu.uniquindio.repo.ArtistaRepo;
 import co.edu.uniquindio.service.ArtistaService;
+import co.edu.uniquindio.utils.collections.MiLinkedList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,11 +28,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ArtistaServiceImpl implements ArtistaService {
 
-
     private final ArtistaRepo artistaRepo;
     private final ArtistaMapper artistaMapper;
     private final TrieAutocompletado trie;
-
 
     /**
      * Método auxiliar para asegurar que el Trie (Árbol de Prefijos) esté cargado con todos los nombres artísticos.
@@ -57,22 +57,30 @@ public class ArtistaServiceImpl implements ArtistaService {
      * @param registrarArtistasDto DTO con el nombre artístico.
      */
     @Override
-    public void agregarArtista(RegistrarArtistasDto registrarArtistasDto) throws ElementoNoEncontradoException {
+    public void agregarArtista(RegistrarArtistasDto registrarArtistasDto)
+            throws ElementoNoEncontradoException {
 
         // Verificar si el nombre artístico ya existe
-        boolean existeNombre = artistaRepo.existsByNombreArtisticoIgnoreCase(registrarArtistasDto.nombreArtistico());
+        boolean existe = artistaRepo.existsByNombreArtisticoIgnoreCase(
+                registrarArtistasDto.nombreArtistico()
+        );
 
-        if (existeNombre) {
+        if (existe) {
             // Si ya existe, lanzar excepción
-            throw new ElementoNoEncontradoException("El nombre artístico '"
-                    + registrarArtistasDto.nombreArtistico() + "' ya está en uso.");
+            throw new ElementoNoEncontradoException(
+                    "El nombre artístico '" + registrarArtistasDto.nombreArtistico() + "' ya está en uso."
+            );
         }
         // Mapear el DTO a la entidad Artista.
         Artista artista = artistaMapper.toEntity(registrarArtistasDto);
 
         // Guardar la entidad en la base de datos.
         artistaRepo.save(artista);
+
+        // Insertar en el Trie inmediatamente
+        trie.insertar(artista.getNombreArtistico());
     }
+
 
 
     /**
@@ -89,6 +97,7 @@ public class ArtistaServiceImpl implements ArtistaService {
     }
 
 
+
     /**
      * Implementación de la función de autocompletado de nombres artísticos.
      *
@@ -97,11 +106,17 @@ public class ArtistaServiceImpl implements ArtistaService {
      */
     @Override
     public List<ArtistaDto> autocompletarTitulos(String prefijo) {
+
         // Aseguramos que el Trie esté inicializado y cargado antes de realizar cualquier búsqueda.
         inicializarTrie();
 
+        // 2. Obtener sugerencias del Trie. El Trie retorna una lista propia (MiLinkedList).
+        // 'trie' es una instancia de la clase TrieAutocompletado.
+        var sugerenciasMiLista = trie.autocompletar(prefijo);
+
         // 1. Obtenemos las coincidencias de títulos exactos a partir del Trie (operación rápida en memoria).
-        List<String> coincidencias = trie.autocompletar(prefijo);
+        // Convertir MiLinkedList → List de Java para usar Spring Data.
+        List<String> coincidencias = convertirMiLinkedList(sugerenciasMiLista);
 
         // 2. Si no hay coincidencias de nombres, devolvemos una lista de DTOs vacía.
         if (coincidencias.isEmpty()) {
@@ -117,6 +132,27 @@ public class ArtistaServiceImpl implements ArtistaService {
                 .collect(Collectors.toList());
     }
 
+
+    /**
+     * Convierte una lista enlazada propia (MiLinkedList) de Strings a una lista estándar de Java (ArrayList).
+     *
+     * <p>Esta conversión es necesaria para interactuar con las APIs de Java y Spring Data
+     * que esperan colecciones estándar.</p>
+     *
+     * @param lista La {@link MiLinkedList} de nombres artísticos a convertir.
+     * @return Una {@link java.util.List} de Strings con los mismos elementos.
+     */
+    private List<String> convertirMiLinkedList(MiLinkedList<String> lista) { // Método auxiliar para la conversión de tipos de lista.
+        List<String> resultado = new ArrayList<>(); // Inicializa una lista estándar (ArrayList) para el resultado.
+
+        for (String s : lista) { // Itera sobre la MiLinkedList usando su implementación de Iterable.
+            resultado.add(s); // Añade cada String de la lista propia a la lista estándar.
+        }
+
+        return resultado; // Retorna la lista estándar de Java.
+    }
+
+
     /**
      * Método auxiliar privado para buscar la entidad {@link Artista} por ID.
      *
@@ -129,6 +165,4 @@ public class ArtistaServiceImpl implements ArtistaService {
         return artistaRepo.findById(idArtista)
                 .orElseThrow(()-> new ElementoNoEncontradoException("Artista no encontrado"));
     }
-
-
 }
