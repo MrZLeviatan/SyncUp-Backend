@@ -73,6 +73,7 @@ public class SecurityConfig {
 
                         // Permite el acceso sin autenticación a los endpoints de autenticación (login, registro).
                         .requestMatchers("/api/auth/**").permitAll() // Login/registro públicos
+                        .requestMatchers("/api/cancion/filtrar").permitAll()
 
                         // Cualquier otra solicitud requiere autenticación
                         .anyRequest().authenticated()

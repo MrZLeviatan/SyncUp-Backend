@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture;
  * @see CancionBusquedaService
  */
 @RestController
-@RequestMapping("/api/canciones")
+@RequestMapping("/api/cancion")
 @RequiredArgsConstructor
 public class CancionBusquedaController {
 
@@ -65,7 +65,7 @@ public class CancionBusquedaController {
      * @return Un {@code CompletableFuture} que se resolverá en un {@code ResponseEntity<List<CancionDto>>}.
      */
     @GetMapping("/filtrar")
-    @PreAuthorize("hasAnyRole('USUARIO','ADMIN')") // Permite el acceso a USUARIO y ADMIN.
+    //@PreAuthorize("hasAnyRole('USUARIO','ADMIN')") // Permite el acceso a USUARIO y ADMIN.
     public CompletableFuture<ResponseEntity<List<CancionDto>>> listarCancionesFiltro(
             @RequestParam(required = false) String artista, // Parámetro opcional.
             @RequestParam(required = false) String genero, // Parámetro opcional.

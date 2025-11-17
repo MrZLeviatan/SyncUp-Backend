@@ -140,4 +140,72 @@ public class CloudinaryService {
             throw new RuntimeException("Error subiendo archivo MP3 a Cloudinary", e); // Maneja errores de IO
         }
     }
+
+
+    /**
+     * Elimina un archivo de Cloudinary usando su URL.
+     * Detecta automáticamente si es imagen o video y remueve la versión del public_id.
+     *
+     * @param url La URL del archivo en Cloudinary.
+     * @throws RuntimeException Si ocurre un error durante la eliminación.
+     */
+    public void borrarArchivo(String url) {
+        if (url == null || url.isEmpty()) return;
+
+        try {
+            // Detectar tipo de recurso (video o image) según la URL
+            String tipo = "image"; // por defecto
+            if (url.contains("/video/")) {
+                tipo = "video";
+            }
+
+            // Extraer public_id sin la versión y sin extensión
+            String publicId = extraerPublicId(url);
+
+            // Llamada a Cloudinary con el tipo correcto
+            Map<String, Object> result = getCloudinary()
+                    .uploader()
+                    .destroy(publicId, ObjectUtils.asMap("resource_type", tipo));
+
+            System.out.println("Archivo eliminado de Cloudinary: " + result);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error eliminando archivo de Cloudinary", e);
+        }
+    }
+
+    /**
+     * Convierte la URL de Cloudinary en public_id necesario para eliminar el recurso.
+     * Ignora la versión (vXXXXXX) que Cloudinary añade a la URL.
+     *
+     * @param url La URL del recurso.
+     * @return El public_id correcto para Cloudinary.
+     */
+    private String extraerPublicId(String url) {
+        if (url == null || url.isEmpty()) return url;
+
+        // Tomar todo después de "/upload/"
+        int index = url.indexOf("/upload/");
+        if (index == -1) return url; // fallback
+
+        String path = url.substring(index + 8); // quita "/upload/"
+
+        // Quitar la versión si existe (vXXXXXXX/)
+        if (path.startsWith("v")) {
+            int slashIndex = path.indexOf('/');
+            if (slashIndex != -1) {
+                path = path.substring(slashIndex + 1);
+            }
+        }
+
+        // Quitar la extensión del archivo
+        int dotIndex = path.lastIndexOf('.');
+        if (dotIndex != -1) {
+            path = path.substring(0, dotIndex);
+        }
+
+        return path;
+    }
+
+
 }

@@ -2,9 +2,7 @@ package co.edu.uniquindio.mapper;
 
 import co.edu.uniquindio.dto.usuario.*;
 import co.edu.uniquindio.models.Usuario;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
 /**
  * Mapper de transformación para la entidad {@link Usuario} a sus DTO's
@@ -66,6 +64,7 @@ public interface UsuarioMapper {
      */
     // Actualiza solo los campos del DTO en la entidad
     @Mapping(target = "id", ignore = true )
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateUsuarioFromDto(EditarUsuarioDto editarUsuarioDto, @MappingTarget Usuario usuario);
 
 
@@ -80,7 +79,9 @@ public interface UsuarioMapper {
      * @param usuario Usuario existente que se actualizará.
      */
     // Actualiza solo el campo de contraseña después de validación / Updates only password field after validation.
+    @Mapping(target = "id", ignore = true )
     @Mapping(target = "password", source = "nuevoPassword")
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updatePasswordFromDto(EditarPasswordDto editarPasswordDto, @MappingTarget Usuario usuario);
 
 

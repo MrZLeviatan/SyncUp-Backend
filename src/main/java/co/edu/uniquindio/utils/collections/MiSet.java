@@ -63,6 +63,12 @@ public class MiSet<T> implements Iterable<T> {
         lista.remove(valor);
     }
 
+
+    public boolean isEmpty() {
+        return !lista.iterator().hasNext();
+    }
+
+
     /**
      * Retorna un iterator sobre los elementos del conjunto en la secuencia de inserción.**
      *

@@ -132,7 +132,7 @@ public class UsuarioController {
      * @return Lista de {@code UsuarioDto} de todos los usuarios, envuelta en {@code ResponseEntity}.
      */
     @GetMapping("/listar") // Mapea peticiones HTTP GET a /api/usuario/listar.
-    @PreAuthorize("hasRole('ADMIN')") // Restringe el acceso solo a usuarios con el rol 'ADMIN'.
+    @PreAuthorize("hasAnyRole('USUARIO','ADMIN')") // Permite el acceso a USUARIO y ADMIN.
     public ResponseEntity<MensajeDto<List<UsuarioDto>>> listarUsuarios() {
 
         // Llama al servicio para obtener la lista completa de usuarios.

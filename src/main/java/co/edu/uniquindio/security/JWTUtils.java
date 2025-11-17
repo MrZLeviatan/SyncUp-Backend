@@ -77,7 +77,7 @@ public class JWTUtils {
                 Admin.class, "ROLE_ADMIN");
 
         // Obtener el rol correspondiente a la clase específica del objeto persona
-        String rol = rolesPorClase.get(Usuario.class);
+        String rol = rolesPorClase.get(persona.getClass());
 
         // Validar que el rol exista; si no, lanzar excepción indicando que no se encontró el rol
         if (rol == null || rol.isEmpty()) {

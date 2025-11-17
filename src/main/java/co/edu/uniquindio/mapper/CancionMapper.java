@@ -6,9 +6,7 @@ import co.edu.uniquindio.dto.cancion.RegistrarCancionDto;
 import co.edu.uniquindio.dto.usuario.EditarUsuarioDto;
 import co.edu.uniquindio.models.Cancion;
 import co.edu.uniquindio.models.Usuario;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
 /**
  * Mapper de transformación para la entidad {@link Cancion} y su DTO asociado ({@link CancionDto}).
@@ -89,6 +87,7 @@ public interface CancionMapper {
      * @param cancion La entidad {@code Cancion} existente que será actualizada (destino del mapeo).
      */
     @Mapping(target = "id", ignore = true)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateCancionFromDto(EditarCancionDto editarCancionDto, @MappingTarget Cancion cancion);
 
 

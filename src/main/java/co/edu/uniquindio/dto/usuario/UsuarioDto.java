@@ -18,10 +18,7 @@ import java.util.List;
  * @param id El identificador único del usuario.
  * @param nombre El nombre completo del usuario.
  * @param username El nombre de usuario único.
- * @param password La contraseña (asumida como cifrada) del usuario.
- * @param cancionesFavoritas La lista de {@link CancionDto} que el usuario ha marcado como favoritas.
- * @param usuariosSeguidos La lista de otros {@code UsuarioDto} que este usuario está siguiendo, lo que
- * demuestra una relación recursiva dentro del DTO.
+ * @param password La contraseña (asumida como cifrada) del usuario.demuestra una relación recursiva dentro del DTO.
  *
  * @see CancionDto
  */
@@ -30,9 +27,7 @@ public record UsuarioDto(
         Long id,
         String nombre,
         String username,
-        String password,
-        List<CancionDto> cancionesFavoritas,
-        List<UsuarioDto> usuariosSeguidos
+        String password
 
 ) {
 }

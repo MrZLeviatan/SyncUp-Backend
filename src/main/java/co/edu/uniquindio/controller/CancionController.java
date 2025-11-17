@@ -122,6 +122,21 @@ public class CancionController {
 
 
     /**
+     * Listar todas las canciones generales
+     *
+     * @return Lista de {@code CancionDto} de las canciones.
+     */
+    @GetMapping("/listar")
+    @PreAuthorize("hasAnyRole('USUARIO','ADMIN')") // Permite el acceso a USUARIO y ADMIN.
+    public ResponseEntity<MensajeDto<List<CancionDto>>> obtenerCancionesGeneral(){
+
+        List<CancionDto> canciones = cancionService.listarCancionesGeneral();
+
+        return ResponseEntity.ok().body(new MensajeDto<>(false,canciones));
+    }
+
+
+    /**
      * Lista todas las canciones marcadas como favoritas por un usuario específico.
      *
      * @param idUsuario ID del usuario, obtenido de la URL.

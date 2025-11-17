@@ -54,11 +54,10 @@ public class UsuarioSocialServiceImpl implements UsuarioSocialService {
      * subsecuentes búsquedas de sugerencias.
      */
     @PostConstruct
-    @Transactional
     public void inicializarGrafo() {
+
         // Obtiene todos los usuarios desde el repositorio (base de datos).
         List<Usuario> usuarios = usuarioRepo.findAllConUsuariosSeguidos();
-
 
         // Agrega cada usuario como nodo dentro del grafo.
         usuarios.forEach(grafoSocial::agregarUsuario);

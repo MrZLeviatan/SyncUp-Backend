@@ -14,6 +14,7 @@ import co.edu.uniquindio.repo.AdminRepo;
 import co.edu.uniquindio.repo.UsuarioRepo;
 import co.edu.uniquindio.service.UsuarioService;
 import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -160,10 +161,13 @@ public class UsuarioServiceImpl implements UsuarioService {
         // 3. Se hace el mapeo para la actualización del password del usuario
         usuarioMapper.updatePasswordFromDto(editarPasswordDto, usuario);
 
+        // 3.1 Se hace al codificación del nuevo password
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+
         // 4. Guarda los cambios en la base de datos
         usuarioRepo.save(usuario);
 
-        // 5. Actualiza también el HashMap ( Nota: Solo se actualiza el objeto en el HashMap; la clave (username) no cambia.)
+        // 5. Actualiza también el HashMap (Nota: Solo se actualiza el objeto en el HashMap; la clave (username) no cambia.)
         indiceUsuarios.put(usuario.getUsername(), usuario);
     }
 
@@ -180,19 +184,30 @@ public class UsuarioServiceImpl implements UsuarioService {
         // 1. Se busca al usuario mediante su ID.
         Usuario usuario = buscarUsuarioId(idUsuario);
 
+        // Eliminar este usuario de las listas de seguidos de los demás
+        for (Usuario u : usuarioRepo.findAll()) {
+            u.getUsuariosSeguidos().remove(usuario);
+        }
+
+        // Limpiar su propia lista de usuarios seguidos
+        usuario.getUsuariosSeguidos().clear();
+
+        //  Limpiar la relación de canciones favoritas para evitar violación de FK
+        usuario.getCancionesFavoritas().clear();
+
+        // Guardar la entidad limpiada antes de eliminar
+        usuarioRepo.save(usuario);
+
         // 1. Eliminar de la lista de usuarios seguidos de otros
         for (Usuario u : grafoSocial.obtenerEstructura().keySet()) {
             u.getUsuariosSeguidos().remove(usuario); // Eliminar referencia en listas
             grafoSocial.desconectarUsuarios(u, usuario); // Actualizar grafo en memoria
         }
 
-
         // 2. Eliminar todas sus conexiones en el grafo
         grafoSocial.obtenerEstructura().remove(usuario);
-
         // 3. Se elimina el usuario de la base de datos
         usuarioRepo.delete(usuario);
-
         // 4. Se elimina el usuario del HashMap
         indiceUsuarios.remove(usuario.getUsername());
     }
@@ -240,6 +255,7 @@ public class UsuarioServiceImpl implements UsuarioService {
      * @return Lista de todos los usuarios en formato {@link UsuarioDto}.
      */
     @Override
+    @Transactional
     public List<UsuarioDto> obtenerUsuarios() {
 
         // 1.. Se obtiene la colección de valores del HashMap (los objetos Usuario)

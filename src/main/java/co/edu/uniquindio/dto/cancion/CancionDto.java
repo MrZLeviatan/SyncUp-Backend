@@ -29,6 +29,7 @@ public record CancionDto(
         LocalDate fechaLanzamiento,
         String urlCancion,
         String urlPortada,
+        String duracion,
         Long idArtista
 
 ) {

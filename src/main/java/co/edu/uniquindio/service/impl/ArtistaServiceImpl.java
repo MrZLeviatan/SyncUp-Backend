@@ -30,7 +30,9 @@ public class ArtistaServiceImpl implements ArtistaService {
 
     private final ArtistaRepo artistaRepo;
     private final ArtistaMapper artistaMapper;
-    private final TrieAutocompletado trie;
+    private final TrieAutocompletado trieArtistas = new TrieAutocompletado();
+
+
 
     /**
      * Método auxiliar para asegurar que el Trie (Árbol de Prefijos) esté cargado con todos los nombres artísticos.
@@ -41,12 +43,12 @@ public class ArtistaServiceImpl implements ArtistaService {
      */
     private void inicializarTrie() {
         // Verifica si el Trie está vacío realizando una búsqueda de prefijo vacío.
-        if (trie.autocompletar("").isEmpty()) {
+        if (trieArtistas.autocompletar("").isEmpty()) {
             // Si está vacío, se obtienen todos los títulos de la base de datos.
             List<Artista> artistas = artistaRepo.findAll();
             // Se inserta cada nombre artístico
             for (Artista a : artistas) {
-                trie.insertar(a.getNombreArtistico());
+                trieArtistas.insertar(a.getNombreArtistico());
             }
         }
     }
@@ -78,7 +80,7 @@ public class ArtistaServiceImpl implements ArtistaService {
         artistaRepo.save(artista);
 
         // Insertar en el Trie inmediatamente
-        trie.insertar(artista.getNombreArtistico());
+        trieArtistas.insertar(artista.getNombreArtistico());
     }
 
 
@@ -112,7 +114,7 @@ public class ArtistaServiceImpl implements ArtistaService {
 
         // 2. Obtener sugerencias del Trie. El Trie retorna una lista propia (MiLinkedList).
         // 'trie' es una instancia de la clase TrieAutocompletado.
-        var sugerenciasMiLista = trie.autocompletar(prefijo);
+        var sugerenciasMiLista = trieArtistas.autocompletar(prefijo);
 
         // 1. Obtenemos las coincidencias de títulos exactos a partir del Trie (operación rápida en memoria).
         // Convertir MiLinkedList → List de Java para usar Spring Data.

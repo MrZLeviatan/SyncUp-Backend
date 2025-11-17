@@ -73,6 +73,13 @@ public interface CancionService {
     CancionDto obtenerCancion(Long idCancion)
             throws ElementoNoEncontradoException;
 
+    /**
+     * Obtiene todas las canciones registradas en el sistema.
+     *
+     * @return DTO con la lista de la canciones generales
+     */
+    List<CancionDto> listarCancionesGeneral();
+
 
     /**
      * Lista todas las canciones que un usuario ha marcado como favoritas.

@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -35,7 +36,8 @@ public class CancionBusquedaServiceImpl implements CancionBusquedaService {
     // Inyección de dependencias.
     private final CancionMapper cancionMapper;
     private final CancionRepo cancionRepo;
-    private final TrieAutocompletado trie;
+    private final TrieAutocompletado trieCanciones = new TrieAutocompletado();
+
 
 
     /**
@@ -46,12 +48,12 @@ public class CancionBusquedaServiceImpl implements CancionBusquedaService {
      */
     private void inicializarTrie() {
         // Verifica si el Trie está vacío realizando una búsqueda de prefijo vacío.
-        if (trie.autocompletar("").isEmpty()) {
+        if (trieCanciones.autocompletar("").isEmpty()) {
             // Si está vacío, se obtienen todos los títulos de la base de datos.
             List<Cancion> canciones = cancionRepo.findAll();
             // Se inserta cada título de canción en el Trie.
             for (Cancion c : canciones) {
-                trie.insertar(c.getTitulo());
+                trieCanciones.insertar(c.getTitulo());
             }
         }
     }
@@ -68,7 +70,7 @@ public class CancionBusquedaServiceImpl implements CancionBusquedaService {
         inicializarTrie();
 
         // 1. Obtenemos las coincidencias de títulos exactos a partir del Trie (operación rápida en memoria).
-        var coincidenciasMiLista = trie.autocompletar(prefijo);
+        var coincidenciasMiLista = trieCanciones.autocompletar(prefijo);
 
         // 1. Obtenemos las coincidencias de títulos exactos a partir del Trie (operación rápida en memoria).
         // Convertir MiLinkedList → List de Java para usar Spring Data.
@@ -141,7 +143,7 @@ public class CancionBusquedaServiceImpl implements CancionBusquedaService {
         if (artista != null && !artista.isEmpty()) {
             // Define el criterio: root.get("artista") debe ser igual al valor del parámetro.
             Specification<Cancion> artistaSpec = (root, query, builder) ->
-                    builder.equal(root.get("artista"), artista);
+                    builder.equal(root.get("artistaPrincipal").get("id"), Long.parseLong(artista));
             // Combina el nuevo filtro a la especificación AND.
             andSpec = andSpec.and(artistaSpec);
             // Combina el nuevo filtro a la especificación OR.
@@ -152,7 +154,7 @@ public class CancionBusquedaServiceImpl implements CancionBusquedaService {
         if (genero != null && !genero.isEmpty()) {
             // Define el criterio: root.get("genero") debe ser igual al valor del parámetro.
             Specification<Cancion> generoSpec = (root, query, builder) ->
-                    builder.equal(root.get("genero"), genero);
+                    builder.equal(root.get("generoMusical"), genero);
             // Combina el nuevo filtro a la especificación AND.
             andSpec = andSpec.and(generoSpec);
             // Combina el nuevo filtro a la especificación OR.
@@ -160,15 +162,21 @@ public class CancionBusquedaServiceImpl implements CancionBusquedaService {
         }
 
         // 5. Filtro por año de lanzamiento
+        // Filtro por año de lanzamiento
         if (anioLanzamiento != null) {
-            // Define el criterio: root.get("anioLanzamiento") debe ser igual al valor del parámetro.
+
+            int anio = Integer.parseInt(String.valueOf(anioLanzamiento));
+
+            LocalDate inicio = LocalDate.of(anio, 1, 1);
+            LocalDate fin = LocalDate.of(anio, 12, 31);
+
             Specification<Cancion> anioSpec = (root, query, builder) ->
-                    builder.equal(root.get("anioLanzamiento"), anioLanzamiento);
-            // Combina el nuevo filtro a la especificación AND.
+                    builder.between(root.get("fechaLanzamiento"), inicio, fin);
+
             andSpec = andSpec.and(anioSpec);
-            // Combina el nuevo filtro a la especificación OR.
             orSpec = orSpec.or(anioSpec);
         }
+
 
         // 6. Ejecutar la consulta para canciones que cumplan *todos* los filtros (AND).
         List<Cancion> cancionesAnd = cancionRepo.findAll(andSpec, pageable).getContent();

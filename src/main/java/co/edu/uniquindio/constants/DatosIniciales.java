@@ -40,13 +40,16 @@ public class DatosIniciales  implements CommandLineRunner {
     @Transactional
     public void run(String... args) throws Exception {
 
-/**
+
+
+        /**
         // Plantilla para quemar Admin
         Admin admin = new Admin();
         admin.setNombre("admin");
         admin.setUsername("admin123");
         admin.setPassword(passwordEncoder.encode("admin"));
         adminRepo.save(admin);
+
 
         // Plantilla para quemar Usuario
         Usuario usuario = new Usuario();
@@ -55,25 +58,40 @@ public class DatosIniciales  implements CommandLineRunner {
         usuario.setPassword(passwordEncoder.encode("usuario"));
         usuario.setCancionesFavoritas(new LinkedList<>());
         usuario.setUsuariosSeguidos(new LinkedList<>());
+
+
+
+        Usuario usuario2 = new Usuario();
+        usuario2.setNombre("usuario");
+        usuario2.setUsername("usuario321");
+        usuario2.setPassword(passwordEncoder.encode("usuario"));
+        usuario2.setCancionesFavoritas(new LinkedList<>());
+        usuario2.setUsuariosSeguidos(new LinkedList<>());
+        usuarioRepo.save(usuario2);
+
+        usuario.seguirUsuario(usuario2);
         usuarioRepo.save(usuario);
 
-        // Plantilla para quemar artista
+
+
+         Plantilla para quemar artista
+
+
         Artista artista = new Artista();
-        artista.setNombreArtistico("artista");
+        artista.setNombreArtistico("Lady Gaga");
         artista.setCanciones(new HashSet<>());
         artistaRepo.save(artista);
 
         // Plantilla para quemar canciones
         Cancion cancion = new Cancion();
-        cancion.setTitulo("cancion");
-        cancion.setGeneroMusical(GeneroMusical.MERENGUE);
+        cancion.setTitulo("Poker Face");
+        cancion.setGeneroMusical(GeneroMusical.METAL);
         cancion.setFechaLanzamiento(LocalDate.now());
         cancion.setUrlCancion(null);
-        cancion.setUrlPortada(null);
-        cancion.setDuracion(null);
+        cancion.setArtistaPrincipal(artista);
+        cancion.setUrlPortada("https://res.cloudinary.com/dehltwwbu/image/upload/v1762995936/Store-IT/ImagenesProductos/jik0rvxvjqmhopuqybvv.png");
+        cancion.setDuracion("3:50");
         cancionRepo.save(cancion);
-
-
- */
+*/
     }
 }

@@ -122,6 +122,8 @@ public class RecomendacionServiceImpl implements RecomendacionService {
     @Override
     public RadioDto iniciarRadio(Long cancionId) throws ElementoNoEncontradoException {
 
+        inicializarGrafo();
+
         // 1. Busca la canción base en la base de datos usando su ID.
         Cancion cancionBase = cancionRepo.findById(cancionId)
                 // Si no se encuentra, lanza una exceptión.
@@ -162,6 +164,8 @@ public class RecomendacionServiceImpl implements RecomendacionService {
      */
     public PlayListDto generarDescubrimientoSemanal(Long idUsuario) throws ElementoNoEncontradoException {
 
+        inicializarGrafo();
+
         // Se busca al usuario mediante su Id
         Usuario usuario = usuarioRepo.findById(idUsuario)
                 .orElseThrow(()-> new ElementoNoEncontradoException("Usuario no encontrado"));
@@ -198,9 +202,9 @@ public class RecomendacionServiceImpl implements RecomendacionService {
             }
         }
 
-        // Limitar a 15 recomendaciones máximo y evitar repetidos
+        // Limitar a 5 recomendaciones máximo y evitar repetidos
         List<CancionDto> cancionesDTO = recomendadas.stream()
-                .limit(15)
+                .limit(5)
                 .map(cancionMapper::toDto)
                 .collect(Collectors.toList());
 

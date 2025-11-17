@@ -17,6 +17,7 @@ import co.edu.uniquindio.service.CancionService;
 import co.edu.uniquindio.service.utils.CloudinaryService;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.UnsupportedTagException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.mpatric.mp3agic.Mp3File;
@@ -133,12 +134,15 @@ public class CancionServiceImpl implements CancionService {
     private double calcularPesoSimilitud(Cancion c1, Cancion c2) {
         double similitud = 0.0;
 
+        // Se calcula de esta forma para que no repitan los artistas.
         if (c1.getGeneroMusical().equals(c2.getGeneroMusical())) similitud += 0.6;
         if (c1.getArtistaPrincipal().equals(c2.getArtistaPrincipal())) similitud += 0.4;
 
         return 1 - similitud; // Convert similarity to cost / Convierte similitud a costo
 
     }
+
+
 
     /**
      * Actualiza los metadatos de una canción existente.
@@ -167,24 +171,38 @@ public class CancionServiceImpl implements CancionService {
      * @throws ElementoNoEncontradoException Si la canción no existe.
      */
     @Override
+    @Transactional
     public void eliminarCancion(Long idCancion) throws ElementoNoEncontradoException {
 
-        // 1. Se busca la canción actualizar
+        // 1. Obtener la canción
         Cancion cancion = buscarCancionId(idCancion);
 
-        // 2. Eliminar del grafo de similitud
-        grafoDeSimilitud.eliminarCancion(cancion);
-
-        // 3. Usar el método del modelo Artista para mantener la coherencia
+        // 2. Romper relación con el artista
         Artista artista = cancion.getArtistaPrincipal();
         if (artista != null) {
-            artista.eliminarCancion(cancion);
-            artistaRepo.save(artista);
+            artista.getCanciones().remove(cancion);
+            cancion.setArtistaPrincipal(null);
         }
 
-        // 4. Eliminar de la base de datos
+        // 3. Eliminar la canción de las listas de favoritos de los usuarios
+        List<Usuario> usuarios = usuarioRepo.findAll();
+        for (Usuario u : usuarios) {
+            if (u.getCancionesFavoritas().contains(cancion)) {
+                u.getCancionesFavoritas().remove(cancion);
+            }
+        }
+
+        // 4. Eliminar del grafo de similitud
+        grafoDeSimilitud.eliminarCancion(cancion);
+
+        // 5. Borrar archivos Cloudinary
+        cloudinaryService.borrarArchivo(cancion.getUrlCancion());
+        cloudinaryService.borrarArchivo(cancion.getUrlPortada());
+
+        // 6. Eliminar la canción
         cancionRepo.delete(cancion);
     }
+
 
 
     /**
@@ -198,6 +216,16 @@ public class CancionServiceImpl implements CancionService {
     public CancionDto obtenerCancion(Long idCancion) throws ElementoNoEncontradoException {
         // Busca la entidad y la mapea a DTO
         return cancionMapper.toDto(buscarCancionId(idCancion));
+    }
+
+    @Override
+    public List<CancionDto> listarCancionesGeneral() {
+
+        List<Cancion> listasCanciones = cancionRepo.findAll();
+
+        return listasCanciones.stream()
+                .map(cancionMapper::toDto)
+                .toList(); // Retorna la lista final de canciones en formato DTO
     }
 
 

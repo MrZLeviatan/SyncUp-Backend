@@ -128,8 +128,10 @@ public class GrafoSocial {
         /* Si no existe en el MiMap, no hay conexiones */
         // Intenta obtener el MiSet de vecinos del usuario origen.
         MiSet<Usuario> vecinosOrigen = adyacencias.get(origen);
-        if (vecinosOrigen == null) { // Si el usuario origen no está en el mapa de adyacencias.
-            return new MiLinkedList<>(); // Retorna una lista vacía, ya que no tiene conexiones.
+
+        // Si el usuario no tiene sugerencias propias se le envía 5 resultados aleatorios.
+        if (vecinosOrigen == null || vecinosOrigen.isEmpty()) { // Si el usuario origen no está en el mapa de adyacencias.
+            return obtenerUsuariosAleatorios(origen, 5);
         }
 
         // --- Estructuras para BFS (Todas usan colecciones propias) --- //
@@ -177,6 +179,10 @@ public class GrafoSocial {
             }
         }
 
+        if (sugerencias.isEmpty()) {
+            return obtenerUsuariosAleatorios(origen, 5);
+        }
+
         return sugerencias; // Retorna la lista de usuarios encontrados a distancia 2.
     }
 
@@ -191,4 +197,40 @@ public class GrafoSocial {
         // Retorna el mapa completo con todos los usuarios y sus conexiones.
         return adyacencias;
     }
+
+
+    /**
+     * Retorna hasta N usuarios aleatorios del grafo, excluyendo al usuario origen.
+     */
+    private MiLinkedList<Usuario> obtenerUsuariosAleatorios(Usuario origen, int maxCantidad) {
+
+        MiLinkedList<Usuario> resultado = new MiLinkedList<>();
+
+        // Obtener todos los usuarios del grafo.
+        MiSet<Usuario> todos = adyacencias.keySet();
+
+        // Filtrar para evitar retornar el usuario origen.
+        java.util.List<Usuario> lista = new java.util.ArrayList<>();
+        for (Usuario u : todos) {
+            if (!u.equals(origen)) {
+                lista.add(u);
+            }
+        }
+
+        if (lista.isEmpty()) {
+            return resultado;
+        }
+
+        // Mezclar la lista para obtener sugerencias aleatorias.
+        java.util.Collections.shuffle(lista);
+
+        // Agregar hasta maxCantidad usuarios.
+        int limite = Math.min(maxCantidad, lista.size());
+        for (int i = 0; i < limite; i++) {
+            resultado.add(lista.get(i));
+        }
+
+        return resultado;
+    }
+
 }

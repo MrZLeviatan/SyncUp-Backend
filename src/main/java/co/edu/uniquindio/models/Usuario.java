@@ -46,7 +46,7 @@ public class Usuario extends Persona {
      * Él {@code fetch = FetchType.LAZY} indica que la lista de canciones no se cargará automáticamente
      * de la base de datos a menos que sea solicitada explícitamente.
      */
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(
             name = "usuario_canciones_favoritas",
             joinColumns = @JoinColumn(name = "usuario_id"),            // Clave foránea del usuario
@@ -71,7 +71,7 @@ public class Usuario extends Persona {
      *
      * <p>Esta relación solo se mantiene desde el lado del “seguidor”, sin recursión automática.
      */
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(
             name = "usuario_sigue_a",
             joinColumns = @JoinColumn(name = "seguidor_id"),      // Usuario que sigue
