@@ -1,4 +1,4 @@
-package co.edu.uniquindio.controller;
+package co.edu.uniquindio.controller.auth;
 
 import co.edu.uniquindio.dto.LoginDto;
 import co.edu.uniquindio.dto.MensajeDto;
@@ -13,10 +13,7 @@ import co.edu.uniquindio.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Controlador REST responsable de manejar los procesos de Autenticación y Registro de usuarios.
@@ -49,8 +46,9 @@ public class AuthController {
      * @throws ElementoRepetidoException Si el nombre de usuario o algún otro campo único ya existe.
      */
     @PostMapping("/registro-usuario")
-    public ResponseEntity<MensajeDto<String>> registrarUsuarios(@Valid @RequestBody RegistrarUsuarioDto registrarUsuarioDto)
-            throws ElementoRepetidoException {
+    public ResponseEntity<MensajeDto<String>> registrarUsuarios(
+            @Valid @ModelAttribute RegistrarUsuarioDto registrarUsuarioDto)
+            throws ElementoRepetidoException, ElementoNoValidoException {
         // Llama al servicio para realizar la lógica de negocio y persistencia del registro.
         usuarioService.registroUsuario(registrarUsuarioDto);
         // Retorna una respuesta 200 OK con un mensaje de éxito.

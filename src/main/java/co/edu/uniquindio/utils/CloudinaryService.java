@@ -1,4 +1,4 @@
-package co.edu.uniquindio.service.utils;
+package co.edu.uniquindio.utils;
 
 import co.edu.uniquindio.exception.ElementoNoValidoException;
 import com.cloudinary.Cloudinary;

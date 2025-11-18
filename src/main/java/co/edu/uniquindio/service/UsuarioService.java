@@ -6,6 +6,7 @@ import co.edu.uniquindio.dto.usuario.RegistrarUsuarioDto;
 import co.edu.uniquindio.dto.usuario.UsuarioDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.exception.ElementoNoCoincideException;
+import co.edu.uniquindio.exception.ElementoNoValidoException;
 import co.edu.uniquindio.exception.ElementoRepetidoException;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public interface UsuarioService {
      * @throws ElementoRepetidoException Si el username ya existe en el sistema.
      */
     void registroUsuario(RegistrarUsuarioDto registrarUsuarioDto)
-            throws ElementoRepetidoException;
+            throws ElementoRepetidoException, ElementoNoValidoException;
 
 
     /**

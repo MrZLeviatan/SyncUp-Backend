@@ -14,7 +14,7 @@ import co.edu.uniquindio.repo.ArtistaRepo;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.repo.UsuarioRepo;
 import co.edu.uniquindio.service.CancionService;
-import co.edu.uniquindio.service.utils.CloudinaryService;
+import co.edu.uniquindio.utils.CloudinaryService;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.UnsupportedTagException;
 import jakarta.transaction.Transactional;

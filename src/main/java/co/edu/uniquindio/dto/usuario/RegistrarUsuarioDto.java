@@ -1,6 +1,7 @@
 package co.edu.uniquindio.dto.usuario;
 
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Objeto de Transferencia de Datos (DTO) de entrada utilizada para el registro inicial de un nuevo {@link co.edu.uniquindio.models.Usuario}.
@@ -25,6 +26,7 @@ public record RegistrarUsuarioDto(
         @NotBlank
         String username,
         @NotBlank
-        String password
+        String password,
+        MultipartFile fotoPerfil
 ) {
 }

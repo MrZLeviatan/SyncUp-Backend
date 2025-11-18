@@ -33,8 +33,14 @@ public interface UsuarioMapper {
      */
     // Ignora el ID, lo genera la base de datos
     @Mapping(target = "id", ignore = true)
+    // Ignoramos la foto de perfil  al ser un archivo inmapeable
+    @Mapping(target = "fotoPerfilUrl", ignore = true)
     // Inicializa la lista vacía de canciones favoritas
     @Mapping(target = "cancionesFavoritas", expression = "java(new java.util.LinkedList<>())")
+    // Inicializa la lista vacía de albums favoritos
+    @Mapping(target = "albumsGustados", expression = "java(new java.util.LinkedList<>())")
+    // Inicializa la lista vacía de artistas favoritos
+    @Mapping(target = "artistasGustados", expression = "java(new java.util.LinkedList<>())")
     // Inicializa la lista vacía de usuarios seguidos
     @Mapping(target = "usuariosSeguidos", expression = "java(new java.util.LinkedList<>())")
     Usuario toEntity(RegistrarUsuarioDto registrarUsuarioDto);

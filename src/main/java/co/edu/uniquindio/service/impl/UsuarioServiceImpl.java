@@ -6,7 +6,9 @@ import co.edu.uniquindio.dto.usuario.RegistrarUsuarioDto;
 import co.edu.uniquindio.dto.usuario.UsuarioDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.exception.ElementoNoCoincideException;
+import co.edu.uniquindio.exception.ElementoNoValidoException;
 import co.edu.uniquindio.exception.ElementoRepetidoException;
+import co.edu.uniquindio.utils.CloudinaryService;
 import co.edu.uniquindio.utils.estructuraDatos.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
@@ -52,6 +54,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     /** Componente para el cifrado y la verificación de contraseñas. */
     private final PasswordEncoder passwordEncoder;
 
+    /** Componente auxiliar para la carga de imagenes */
+    private final CloudinaryService cloudinaryService;
+
     private final GrafoSocial grafoSocial;
 
     // Solo para pruebas unitarias o validación interna
@@ -84,7 +89,7 @@ public class UsuarioServiceImpl implements UsuarioService {
      */
     @Override
     public void registroUsuario(RegistrarUsuarioDto registrarUsuarioDto)
-            throws ElementoRepetidoException {
+            throws ElementoRepetidoException, ElementoNoValidoException {
 
         // 1. Validar unicidad usando el índice en memoria (O(1)).
         if (indiceUsuarios.containsKey(registrarUsuarioDto.username())) {
@@ -96,19 +101,25 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new ElementoRepetidoException("El username ya está en uso");
         }
 
-        // 2. Convierte el DTO en entidad Usuario usando el mapper
+        // 2, Se sube la imagen de la foto de perfil del usuario.
+        String urlImage = cloudinaryService.uploadImage(registrarUsuarioDto.fotoPerfil());
+
+        // 3. Convierte el DTO en entidad Usuario usando el mapper
         Usuario usuario = usuarioMapper.toEntity(registrarUsuarioDto);
 
-        // 3. Se codifica el password del usuario.
+        // 4. Se codifica el password del usuario.
         usuario.setPassword(passwordEncoder.encode(registrarUsuarioDto.password()));
 
-        // 4. Guarda el usuario en la base de datos
+        // 2.1 Se asigna la url de la foto de perfil
+        usuario.setFotoPerfilUrl(urlImage);
+
+        // 5. Guarda el usuario en la base de datos
         Usuario guardado = usuarioRepo.save(usuario);
 
-        // 5. Agrega el usuario al HashMap usando el username como clave
+        // 6. Agrega el usuario al HashMap usando el username como clave
         indiceUsuarios.put(usuario.getUsername(), usuario);
 
-        // 6. Se agrega al grafo social
+        // 7. Se agrega al grafo social
         grafoSocial.agregarUsuario(guardado);
     }
 

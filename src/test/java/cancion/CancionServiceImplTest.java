@@ -10,7 +10,7 @@ import co.edu.uniquindio.models.enums.GeneroMusical;
 import co.edu.uniquindio.repo.ArtistaRepo;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.service.impl.CancionServiceImpl;
-import co.edu.uniquindio.service.utils.CloudinaryService;
+import co.edu.uniquindio.utils.CloudinaryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
