@@ -41,8 +41,8 @@ public class DatosIniciales  implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
 
+/**
 
-        /**
         // Plantilla para quemar Admin
         Admin admin = new Admin();
         admin.setNombre("admin");
@@ -74,9 +74,7 @@ public class DatosIniciales  implements CommandLineRunner {
 
 
 
-         Plantilla para quemar artista
-
-
+         // Plantilla para quemar artista
         Artista artista = new Artista();
         artista.setNombreArtistico("Lady Gaga");
         artista.setCanciones(new HashSet<>());

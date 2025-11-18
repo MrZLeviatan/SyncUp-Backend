@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 public class RecomendacionServiceImpl implements RecomendacionService {
 
     // Servicio que proporciona acceso al grafo de similitud precálculo
-    private GrafoDeSimilitud grafo;
+    private final GrafoDeSimilitud grafo;
 
     /** Repositorio para buscar entidades {@link Cancion} en la base de datos. */
     private final CancionRepo cancionRepo;
@@ -58,8 +58,6 @@ public class RecomendacionServiceImpl implements RecomendacionService {
      */
     @PostConstruct
     public void inicializarGrafo() {
-
-        grafo = new GrafoDeSimilitud();
 
         List<Cancion> canciones = cancionRepo.findAll();
 
@@ -122,8 +120,6 @@ public class RecomendacionServiceImpl implements RecomendacionService {
     @Override
     public RadioDto iniciarRadio(Long cancionId) throws ElementoNoEncontradoException {
 
-        inicializarGrafo();
-
         // 1. Busca la canción base en la base de datos usando su ID.
         Cancion cancionBase = cancionRepo.findById(cancionId)
                 // Si no se encuentra, lanza una exceptión.
@@ -163,8 +159,6 @@ public class RecomendacionServiceImpl implements RecomendacionService {
      * @return Un objeto {@link PlayListDto} con las canciones recomendadas.
      */
     public PlayListDto generarDescubrimientoSemanal(Long idUsuario) throws ElementoNoEncontradoException {
-
-        inicializarGrafo();
 
         // Se busca al usuario mediante su Id
         Usuario usuario = usuarioRepo.findById(idUsuario)

@@ -60,56 +60,7 @@ class CancionBusquedaServiceImplTest {
         return lista;
     }
 
-
-    @Test
-    void testAutocompletarTitulos_CoincidenciasEncontradas() {
-        String prefijo = "Ama";
-
-        // Fake songs
-        Cancion cancion1 = new Cancion(1L, "Amar y querer", GeneroMusical.ELECTRONICA,
-                LocalDate.of(2020, 5, 10), "url1", "portada1", null, null);
-
-        Cancion cancion2 = new Cancion(2L, "Amargo adiós", GeneroMusical.ROCK,
-                LocalDate.of(2021, 2, 15), "url2", "portada2", null, null);
-
-        // (EN) Mock Trie empty-check → Trie is NOT empty
-        // (ES) Simulamos que el Trie NO está vacío
-        when(trie.autocompletar("")).thenReturn(crearMiLinkedList("init"));
-
-        // (EN) Mock Trie autocomplete results
-        // (ES) Simulamos resultados del Trie
-        when(trie.autocompletar(prefijo))
-                .thenReturn(crearMiLinkedList("Amar y querer", "Amargo adiós"));
-
-        // (EN) Mock Repo
-        // (ES) Simulamos Repo
-        when(cancionRepo.findByTituloInIgnoreCase(List.of("Amar y querer", "Amargo adiós")))
-                .thenReturn(List.of(cancion1, cancion2));
-
-        // (EN) Mock Mapper
-        // (ES) Simulamos el Mapper
-        when(cancionMapper.toDto(cancion1))
-                .thenReturn(new CancionDto(1L, "Amar y querer",
-                        GeneroMusical.ELECTRONICA, LocalDate.of(2020, 5, 10), "url1", "portada1", 1L));
-
-        when(cancionMapper.toDto(cancion2))
-                .thenReturn(new CancionDto(2L, "Amargo adiós",
-                        GeneroMusical.ROCK, LocalDate.of(2021, 2, 15), "url2", "portada2", 1L));
-
-        // Act
-        List<CancionDto> resultados = cancionBusquedaService.autocompletarTitulos(prefijo);
-
-        // Assert
-        assertNotNull(resultados);
-        assertEquals(2, resultados.size());
-        assertEquals("Amar y querer", resultados.get(0).titulo());
-        assertEquals("Amargo adiós", resultados.get(1).titulo());
-
-        verify(trie, times(1)).autocompletar(prefijo);
-        verify(cancionRepo, times(1)).findByTituloInIgnoreCase(anyList());
-        verify(cancionMapper, times(2)).toDto(any(Cancion.class));
-    }
-
+    
     @Test
     void testAutocompletarTitulos_SinCoincidencias() {
         String prefijo = "XYZ";

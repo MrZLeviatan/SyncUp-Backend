@@ -134,7 +134,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         // 3. Guarda los cambios en la base de datos
         usuarioRepo.save(usuario);
 
-        // 4. Actualiza también el HashMap ( Nota: Solo se actualiza el objeto en el HashMap; la clave (username) no cambia.)
+        // 4. Actualiza también el HashMap (Nota: Solo se actualiza el objeto en el HashMap; la clave (username) no cambia.)
         indiceUsuarios.put(usuario.getUsername(), usuario);
     }
 

@@ -36,6 +36,10 @@ import static org.mockito.Mockito.*;
  */
 public class RecomendacionServiceIniciarRadioTest {
 
+
+    @Mock
+    private GrafoDeSimilitud grafo;
+
     /** Repositorio simulado de canciones. */
     @Mock
     private CancionRepo cancionRepo;
@@ -62,7 +66,7 @@ public class RecomendacionServiceIniciarRadioTest {
         grafoMock = mock(GrafoDeSimilitud.class);
 
         // Crea una nueva instancia del servicio con dependencias
-        recomendacionService = new RecomendacionServiceImpl(cancionRepo, usuarioRepo, cancionMapper);
+        recomendacionService = new RecomendacionServiceImpl(grafo,cancionRepo, usuarioRepo, cancionMapper);
 
         // Inyecta el grafo simulado al campo privado del servicio
         try {
@@ -112,7 +116,7 @@ public class RecomendacionServiceIniciarRadioTest {
             return new CancionDto(
                     c.getId(), c.getTitulo(), c.getGeneroMusical(),
                     c.getFechaLanzamiento(), c.getUrlCancion(),
-                    c.getUrlPortada(), c.getArtistaPrincipal().getId()
+                    c.getUrlPortada(),null, c.getArtistaPrincipal().getId()
             );
         });
 

@@ -143,7 +143,6 @@ public class CancionServiceImpl implements CancionService {
     }
 
 
-
     /**
      * Actualiza los metadatos de una canción existente.
      *
@@ -156,13 +155,27 @@ public class CancionServiceImpl implements CancionService {
         // 1. Se busca la canción actualizar
         Cancion cancion = buscarCancionId(editarCancionDto.id());
 
-        // 2. Se mapea la canción actualizar
+        // 2. Remover del grafo antes de actualizar (para evitar pesos viejos)
+        grafoDeSimilitud.eliminarCancion(cancion);
+
+        // 3. Se mapea la canción actualizar
         cancionMapper.updateCancionFromDto(editarCancionDto, cancion);
 
         // 3. Se guarda en la base de datos
         cancionRepo.save(cancion);
-    }
 
+        // 4. Volver a agregarla al grafo
+        grafoDeSimilitud.agregarCancion(cancion);
+
+        // 5. Reconectar con todas las demás canciones y recalcular pesos
+        for (Cancion otra : cancionRepo.findAll()) {
+            if (!otra.equals(cancion)) {
+                double peso = calcularPesoSimilitud(cancion, otra);
+                grafoDeSimilitud.conectarCanciones(cancion, otra, peso);
+            }
+        }
+
+    }
 
     /**
      * Elimina una canción del sistema y la remueve del grafo de similitud.

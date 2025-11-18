@@ -37,6 +37,10 @@ import static org.mockito.Mockito.*;
 public class RecomendacionServiceDescubrimientoSemanalTest {
 
     /** Repositorio de canciones (no utilizado directamente en esta prueba). */
+
+    @Mock
+    private GrafoDeSimilitud grafo;
+
     @Mock
     private CancionRepo cancionRepo;
 
@@ -62,7 +66,7 @@ public class RecomendacionServiceDescubrimientoSemanalTest {
 
         // Crea un grafo simulado y lo asigna al servicio directamente (ya que no se inyecta por Spring aquí)
         grafoMock = mock(GrafoDeSimilitud.class);
-        recomendacionService = new RecomendacionServiceImpl(cancionRepo, usuarioRepo, cancionMapper);
+        recomendacionService = new RecomendacionServiceImpl(grafo,cancionRepo, usuarioRepo, cancionMapper);
 
         // Inyecta manualmente el grafo simulado al campo privado
         // (porque en la app real se crea en @PostConstruct)
@@ -121,7 +125,7 @@ public class RecomendacionServiceDescubrimientoSemanalTest {
 
         when(cancionMapper.toDto(any(Cancion.class))).then(inv -> {
             Cancion c = inv.getArgument(0);
-            return new CancionDto(c.getId(), c.getTitulo(), c.getGeneroMusical(), null, null, null, null);
+            return new CancionDto(c.getId(), c.getTitulo(), c.getGeneroMusical(), null, null, null, null,null);
         });
 
         PlayListDto resultado = recomendacionService.generarDescubrimientoSemanal(10L);
