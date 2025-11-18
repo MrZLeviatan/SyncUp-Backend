@@ -2,12 +2,12 @@ package grafoSocial;
 
 import co.edu.uniquindio.dto.usuario.SugerenciaUsuariosDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
-import co.edu.uniquindio.graph.GrafoSocial;
+import co.edu.uniquindio.utils.estructuraDatos.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
 import co.edu.uniquindio.repo.UsuarioRepo;
 import co.edu.uniquindio.service.impl.UsuarioSocialServiceImpl;
-import co.edu.uniquindio.utils.collections.MiLinkedList;
+import co.edu.uniquindio.utils.listasPropias.MiLinkedList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -3,12 +3,12 @@ package co.edu.uniquindio.service.impl;
 import co.edu.uniquindio.dto.artista.ArtistaDto;
 import co.edu.uniquindio.dto.artista.RegistrarArtistasDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
-import co.edu.uniquindio.graph.TrieAutocompletado;
+import co.edu.uniquindio.utils.estructuraDatos.TrieAutocompletado;
 import co.edu.uniquindio.mapper.ArtistaMapper;
 import co.edu.uniquindio.models.Artista;
 import co.edu.uniquindio.repo.ArtistaRepo;
 import co.edu.uniquindio.service.ArtistaService;
-import co.edu.uniquindio.utils.collections.MiLinkedList;
+import co.edu.uniquindio.utils.listasPropias.MiLinkedList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,12 +1,12 @@
 package co.edu.uniquindio.service.impl;
 
 import co.edu.uniquindio.dto.cancion.CancionDto;
-import co.edu.uniquindio.graph.TrieAutocompletado;
+import co.edu.uniquindio.utils.estructuraDatos.TrieAutocompletado;
 import co.edu.uniquindio.mapper.CancionMapper;
 import co.edu.uniquindio.models.Cancion;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.service.CancionBusquedaService;
-import co.edu.uniquindio.utils.collections.MiLinkedList;
+import co.edu.uniquindio.utils.listasPropias.MiLinkedList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

@@ -2,7 +2,7 @@ package grafoSocial;
 
 import co.edu.uniquindio.dto.usuario.UsuarioConexionDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
-import co.edu.uniquindio.graph.GrafoSocial;
+import co.edu.uniquindio.utils.estructuraDatos.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
 import co.edu.uniquindio.repo.UsuarioRepo;

@@ -1,12 +1,10 @@
-package co.edu.uniquindio.graph;
+package co.edu.uniquindio.utils.estructuraDatos;
 
 import co.edu.uniquindio.models.Cancion;
-import co.edu.uniquindio.utils.collections.MiLinkedList;
-import co.edu.uniquindio.utils.collections.MiMap;
-import co.edu.uniquindio.utils.collections.MiSet;
+import co.edu.uniquindio.utils.listasPropias.MiLinkedList;
+import co.edu.uniquindio.utils.listasPropias.MiMap;
+import co.edu.uniquindio.utils.listasPropias.MiSet;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 /**
  * Grafo ponderado no dirigido diseñado para conectar {@link Cancion}es según su nivel de similitud.

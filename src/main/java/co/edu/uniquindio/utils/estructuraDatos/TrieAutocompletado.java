@@ -1,7 +1,7 @@
-package co.edu.uniquindio.graph;
+package co.edu.uniquindio.utils.estructuraDatos;
 
-import co.edu.uniquindio.utils.collections.MiLinkedList;
-import co.edu.uniquindio.utils.collections.MiMap;
+import co.edu.uniquindio.utils.listasPropias.MiLinkedList;
+import co.edu.uniquindio.utils.listasPropias.MiMap;
 import org.springframework.stereotype.Component;
 
 /**

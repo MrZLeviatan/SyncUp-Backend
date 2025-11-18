@@ -12,22 +12,12 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 /**
- * Entidad que representa una Canción registrada en el sistema.
+ * Representa una canción dentro del catálogo musical administrado por la plataforma.
  *
- * <p>Esta clase se mapea a la tabla "cancion" en la base de datos y almacena toda la información
- * relevante sobre una pista musical, incluyendo sus metadatos y su relación con el {@link Artista} principal.
- * Está diseñada para ser utilizada en diversas funcionalidades del sistema como:
- * <ul>
- * <li>Generación de Radio relacionada con la canción.</li>
- * <li>Generación de recomendaciones basadas en la canción.</li>
- * <li>Generación de una playlist 'Semanal' o personalizada.</li>
- * </ul>
- *
- * <p>Utiliza anotaciones de Lombok para generar automáticamente los getters, setters, constructores
- * (sin argumentos y con todos los argumentos) y las anotaciones de JPA para el mapeo de la persistencia.
- *
- * @see Artista
- * @see GeneroMusical
+ * <p>Una canción almacena información descriptiva, metadatos técnicos y las asociaciones
+ * necesarias para su correcta organización: el artista principal responsable de su producción
+ * y el álbum en el que se distribuye. La entidad también integra referencias a los recursos
+ * multimedia utilizados para su reproducción y visualización.</p>
  */
 @Getter
 @Setter
@@ -35,84 +25,83 @@ import java.util.Objects;
 @NoArgsConstructor
 @Entity
 @Table(name = "canción")
-@Comment("Entidad que representan las Canciones registradas.")
+@Comment("Entidad que modela el registro detallado de una canción.")
 public class Cancion {
 
     /**
-     * Identificador único de la canción.
-     * <p>Es la clave primaria de la tabla, generada automáticamente por la base de datos (Oracle SQL)
-     * utilizando una estrategia de identidad.
+     * Identificador único y autogenerado para la canción.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)  // ID creado automáticamente por Oracle SQL
-    @Comment("ID interno único de la canción, generado automáticamente por el sistema.")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Comment("Clave primaria de la canción.")
     private Long id;
 
     /**
-     * Título o nombre de la canción.
-     * <p>Es un campo obligatorio (`nullable = false`).
+     * Nombre oficial o título comercial asignado a la canción.
      */
-    @Column(name = "titulo_cancion", nullable = false) // El título no puede ser nulo.
-    @Comment("Titulo de la canción")
+    @Column(name = "titulo_cancion", nullable = false)
+    @Comment("Título o denominación oficial de la canción.")
     private String titulo;
 
     /**
-     * Género musical de la canción.
-     * <p>Se almacena como una cadena de texto en la base de datos a partir del enum {@link GeneroMusical}.
-     * Es un campo obligatorio (`nullable = falsé`).
+     * Género musical con el cual se clasifica la obra.
      */
-    @Enumerated(EnumType.STRING)    // Convertir el enum String para el guardado
+    @Enumerated(EnumType.STRING)
     @Column(name = "genero_musical", nullable = false)
-    @Comment("Genero musical de la canción")
+    @Comment("Clasificación musical basada en el género.")
     private GeneroMusical generoMusical;
 
     /**
-     * Fecha de lanzamiento de la canción.
-     * <p>Almacena la fecha en que la canción fue publicada. Es un campo obligatorio (`nullable = false`).
+     * Fecha en la que la canción fue publicada o distribuida por primera vez.
      */
-    @Column(name = "fecha_lanzamiento", nullable = false)   // Fecha de lanzamiento de la canción
-    @Comment("Fecha de lanzamiento de la canción.")
+    @Column(name = "fecha_lanzamiento", nullable = false)
+    @Comment("Fecha oficial de lanzamiento.")
     private LocalDate fechaLanzamiento;
 
-
     /**
-     * URL de la imagen de portada del álbum o sencillo.
-     * <p>URL del servicio de almacenamiento en la nube de Cloudinary.
+     * Enlace a la portada asociada a la canción o al álbum correspondiente.
      */
     @Column(name = "imagen_portada_url")
-    @Comment("URL de la imagen de la portada (Almacenada en Cloudinary).")
+    @Comment("URL pública para la portada.")
     private String urlPortada;
 
-
     /**
-     * URL del archivo de audio (MP3) de la canción.
-     * <p>URL del servicio de almacenamiento en la nube de Cloudinary.
+     * Ubicación del archivo de audio correspondiente a la canción.
      */
     @Column(name = "cancion_url")
-    @Comment("URL de la canción MP3 (Almacenada en Cloudinary).")
+    @Comment("Ruta o URL del recurso de audio.")
     private String urlCancion;
 
     /**
-     * Duración de la canción.
-     * <p>Almacenada como una cadena de texto con el formato "mm:ss" (minutos:segundos).
-     * Se espera que este valor se calcule automáticamente al subir el archivo.
+     * Duración expresada en formato estándar (mm:ss). Este dato puede ser calculado
+     * automáticamente a partir del archivo multimedia o cargado manualmente.
      */
     @Column(name = "duración_canción")
-    @Comment("Duración de la canción en mm:ss")
+    @Comment("Duración total del audio.")
     private String duracion;
 
 
+    // --------------------------------------------------------------------
+    // Relaciones
+    // --------------------------------------------------------------------
+
     /**
-     * Artista principal de la canción.
-     * <p>Define una relación de Muchos a Uno (`ManyToOne`) donde una canción está asociada obligatoriamente
-     * (`optional = false`) a un solo {@link Artista}.
-     * <p>La columna de la clave foránea en la tabla `cancion` se llama `artista_principal_id`.
+     * Artista principal responsable de la interpretación o producción del tema.
+     * Un artista puede estar asociado a múltiples canciones.
      */
-    // Relación Muchos a Uno con el artista (Una canción es de un solo artista)
-    @ManyToOne(optional = false) // Es obligatorio que una canción tenga un artista principal
+    @ManyToOne(optional = false)
     @JoinColumn(name = "artista_principal_id", nullable = false)
-    @Comment("Artista principal de la canción.")
+    @Comment("Artista principal vinculado.")
     private Artista artistaPrincipal;
+
+    /**
+     * Álbum al cual pertenece la canción. Un álbum agrupa un conjunto de canciones
+     * relacionadas por temática, fecha de producción o lanzamiento comercial.
+     */
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "album_id", nullable = false)
+    @Comment("Álbum que agrupa esta canción.")
+    private Album album;
 
 
     // -------------------------------------------------------------------------------------------------
@@ -120,11 +109,12 @@ public class Cancion {
     // -------------------------------------------------------------------------------------------------
 
     /**
-     * Compara si esta instancia de {@code Cancion} es igual a otro objeto.
-     * <p>La igualdad se determina exclusivamente por la comparación de sus **IDs** internos.
+     * Determina la igualdad entre dos instancias de {@code Cancion} en función
+     * del identificador asignado. Si el ID coincide, se considera que representan
+     * el mismo registro dentro del sistema.
      *
-     * @param o El objeto con el que se va a comparar.
-     * @return {@code true} si los IDs de las canciones son iguales; {@code false} en caso contrario.
+     * @param o objeto a comparar.
+     * @return true si ambos objetos comparten el mismo ID; false en caso contrario.
      */
     @Override
     public boolean equals(Object o) {
@@ -136,14 +126,16 @@ public class Cancion {
 
 
     /**
-     * Genera el valor de código hash para esta instancia de {@code Cancion}.
-     * <p>El código hash se calcula únicamente a partir del **ID** interno de la canción.
+     * Calcula el valor hash de la entidad usando únicamente el identificador.
+     * Esto garantiza coherencia con el método equals() y evita colisiones
+     * innecesarias en estructuras de datos.
      *
-     * @return El valor del código hash basado en el ID.
+     * @return hash asociado al ID de la canción.
      */
     @Override
     public int hashCode() {
-        return Objects.hash(id);  // Usar solo el ID para el hash
+        return Objects.hash(id);
     }
+
 
 }

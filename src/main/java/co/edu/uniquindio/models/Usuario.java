@@ -7,21 +7,21 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Comment;
 
-
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Entidad que representa a un Usuario estándar de la plataforma.
+ * Representa a un usuario estándar registrado dentro de la plataforma.
  *
- * <p>Esta clase extiende de la clase abstracta {@link Persona}, heredando atributos de identificación y
- * autenticación (ID, nombre, username, password).
+ * <p>Hereda de la clase abstracta {@link Persona}, incorporando propiedades esenciales
+ * para identificación y autenticación tales como nombre, username y credenciales de acceso.
  *
- * <p>Su principal característica es la gestión de las relaciones que definen el comportamiento del usuario,
- * como la lista de canciones favoritas.
+ * <p>Además de los atributos heredados, esta entidad modela las interacciones sociales
+ * del usuario con el ecosistema musical, incluyendo canciones favoritas, álbumes que le
+ * gustan, artistas preferidos y otros usuarios a los que sigue.
  *
- * @see Persona
- * @see Cancion
+ * <p>Su diseño permite gestionar dinámicamente gustos, preferencias y relaciones del usuario
+ * mediante asociaciones bidireccionales y tablas de unión optimizadas.
  */
 @Getter
 @Setter
@@ -32,67 +32,90 @@ import java.util.List;
 @Comment("Entidad que representa a los usuarios registrados del sistema.")
 public class Usuario extends Persona {
 
+    /**
+     * URL pública de la imagen de perfil del usuario.
+     *
+     * <p>Este recurso es opcional y almacena la ubicación de la fotografía utilizada
+     * para identificar visualmente al usuario dentro de la interfaz.</p>
+     */
+    @Column(name = "foto_perfil")
+    @Comment("URL de la foto de perfil del usuario.")
+    private String fotoPerfilUrl;
 
     /**
-     * Lista de canciones marcadas como favoritas por el usuario.
+     * Colección de canciones marcadas como favoritas por el usuario.
      *
-     * <p>Define una relación Muchos a Muchos (`@ManyToMany`) con la entidad {@link Cancion}, ya que:
-     * <ul>
-     * <li>Un usuario puede tener muchas canciones favoritas.</li>
-     * <li>Una canción puede ser la favorita de muchos usuarios.</li>
-     * </ul>
+     * <p>Asociación de tipo Muchos a Muchos con {@link Cancion}. La tabla de unión
+     * {@code usuario_canciones_favoritas} mantiene la relación sin información adicional.
      *
-     * <p>La relación se mapea a través de la tabla intermedia (o de unión) {@code "usuario_canciones_favoritas"}.
-     * Él {@code fetch = FetchType.LAZY} indica que la lista de canciones no se cargará automáticamente
-     * de la base de datos a menos que sea solicitada explícitamente.
+     * <p>Se utiliza carga diferida (`LAZY`) para optimizar el rendimiento, evitando la
+     * carga automática de la colección hasta que sea requerida explícitamente.</p>
      */
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(
             name = "usuario_canciones_favoritas",
-            joinColumns = @JoinColumn(name = "usuario_id"),            // Clave foránea del usuario
-            inverseJoinColumns = @JoinColumn(name = "cancion_id")      // Clave foránea de la canción
+            joinColumns = @JoinColumn(name = "usuario_id"),
+            inverseJoinColumns = @JoinColumn(name = "cancion_id")
     )
     @Comment("Lista de canciones favoritas del usuario.")
-    private List<Cancion> cancionesFavoritas = new LinkedList<>(); // Uso de LinkedList
-
+    private List<Cancion> cancionesFavoritas = new LinkedList<>();
 
     /**
-     * Lista de usuarios que este usuario sigue.
+     * Colección de álbumes musicales que el usuario ha indicado que le gustan.
      *
-     * <p>Se define una relación Muchos a Muchos con la misma entidad {@link Usuario}.
-     * <ul>
-     * <li>Un usuario puede seguir a muchos otros usuarios.</li>
-     * <li>Un usuario puede ser seguido por muchos otros usuarios.</li>
-     * </ul>
+     * <p>Asociación Muchos a Muchos con {@link Album}. La tabla intermedia
+     * {@code usuario_albunes_gustados} gestiona esta relación.</p>
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "usuario_albunes_gustados",
+            joinColumns = @JoinColumn(name = "usuario_id"),
+            inverseJoinColumns = @JoinColumn(name = "album_id")
+    )
+    @Comment("Álbumes que le gustan al usuario.")
+    private List<Album> albumsGustados = new LinkedList<>();
+
+    /**
+     * Colección de artistas marcados como preferidos por el usuario.
      *
-     * <p>La tabla intermedia {@code usuario_sigue_a} mantiene la relación bidireccional.
-     * - La columna {@code seguidor_id} identifica al usuario que sigue.
-     * - La columna {@code seguido_id} identifica al usuario que es seguido.
+     * <p>Asociación Many-to-Many con {@link Artista}. Esta relación permite modelar
+     * preferencias musicales del usuario a nivel de artistas.</p>
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "usuario_artistas_gustados",
+            joinColumns = @JoinColumn(name = "usuario_id"),
+            inverseJoinColumns = @JoinColumn(name = "artista_id")
+    )
+    @Comment("Artistas que le gustan al usuario.")
+    private List<Artista> artistasGustados = new LinkedList<>();
+
+    /**
+     * Lista de usuarios que este usuario sigue activamente.
      *
-     * <p>Esta relación solo se mantiene desde el lado del “seguidor”, sin recursión automática.
+     * <p>Asociación recursiva Many-to-Many sobre la entidad {@link Usuario}. La tabla
+     * {@code usuario_sigue_a} modela la relación asimétrica entre un “seguidor” y un “seguido”.</p>
+     *
+     * <p>La relación se administra desde la perspectiva del usuario que sigue a otros,
+     * evitando la recursión automática y brindando un control explícito sobre la colección.</p>
      */
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(
             name = "usuario_sigue_a",
-            joinColumns = @JoinColumn(name = "seguidor_id"),      // Usuario que sigue
-            inverseJoinColumns = @JoinColumn(name = "seguido_id") // Usuario seguido
+            joinColumns = @JoinColumn(name = "seguidor_id"),
+            inverseJoinColumns = @JoinColumn(name = "seguido_id")
     )
-    @Comment("Lista de usuarios que este usuario sigue (Following).")
+    @Comment("Lista de usuarios que este usuario sigue.")
     private List<Usuario> usuariosSeguidos = new LinkedList<>();
 
-
-
-    // -------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     // MÉTODOS DE GESTIÓN DE CANCIONES FAVORITAS
-    // -------------------------------------------------------------
-
+    // ---------------------------------------------------------------------------------------------
 
     /**
-     * Agrega una {@code Cancion} a la lista de favoritas del usuario.
+     * Agrega una canción a la lista de favoritas del usuario si no se encuentra registrada previamente.
      *
-     * <p>Verifica que la canción no sea nula y que no esté ya presente en la lista para evitar duplicados.
-     *
-     * @param cancion la canción a agregar.
+     * @param cancion canción a incluir en la colección.
      */
     public void agregarCancionFavorita(Cancion cancion) {
         if (cancion != null && !cancionesFavoritas.contains(cancion)) {
@@ -100,41 +123,83 @@ public class Usuario extends Persona {
         }
     }
 
-
     /**
-     * Elimina una {@code Cancion} de la lista de favoritas del usuario.
+     * Elimina una canción de la lista de favoritas.
      *
-     * @param cancion la canción a eliminar.
+     * @param cancion canción que se desea remover.
      */
     public void eliminarCancionFavorita(Cancion cancion) {
         cancionesFavoritas.remove(cancion);
     }
 
-
     /**
-     * Retorna una copia segura de la lista actual de canciones favoritas del usuario.
+     * Retorna una copia inmutable de la colección de canciones favoritas para evitar
+     * modificaciones externas directas sobre la entidad persistida.
      *
-     * <p>Devuelve una nueva {@code LinkedList} para encapsular el atributo y prevenir modificaciones
-     * externas directas sobre el objeto persistido.
-     *
-     * @return Una copia de la lista de canciones favoritas.
+     * @return copia defensiva de la lista de canciones favoritas.
      */
     public List<Cancion> getListaCancionesFavoritas() {
         return new LinkedList<>(cancionesFavoritas);
     }
 
-
-
-    // -------------------------------------------------------------
-    // MÉTODOS DE GESTIÓN DE USUARIOS SEGUIDOS
-    // -------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
+    // GESTIÓN DE ÁLBUMES GUSTADOS
+    // ---------------------------------------------------------------------------------------------
 
     /**
-     * Agrega un usuario a la lista de seguidos.
+     * Registra un álbum como gustado por el usuario.
      *
-     * <p>Evita que el usuario se siga a sí mismo y previene duplicados.
+     * @param album álbum que se desea agregar.
+     */
+    public void agregarAlbumGustado(Album album) {
+        if (album != null && !albumsGustados.contains(album)) {
+            albumsGustados.add(album);
+        }
+    }
+
+    /**
+     * Elimina un álbum de la lista de álbumes gustados.
      *
-     * @param usuario El usuario a seguir.
+     * @param album álbum a retirar.
+     */
+    public void eliminarAlbumGustado(Album album) {
+        albumsGustados.remove(album);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // GESTIÓN DE ARTISTAS PREFERIDOS
+    // ---------------------------------------------------------------------------------------------
+
+    /**
+     * Registra un artista como preferido del usuario.
+     *
+     * @param artista artista a incluir.
+     */
+    public void agregarArtistaGustado(Artista artista) {
+        if (artista != null && !artistasGustados.contains(artista)) {
+            artistasGustados.add(artista);
+        }
+    }
+
+    /**
+     * Remueve un artista de la lista de preferidos.
+     *
+     * @param artista artista a eliminar.
+     */
+    public void eliminarArtistaGustado(Artista artista) {
+        artistasGustados.remove(artista);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // GESTIÓN DE USUARIOS SEGUIDOS
+    // ---------------------------------------------------------------------------------------------
+
+    /**
+     * Permite que este usuario siga a otro usuario del sistema.
+     *
+     * <p>El método impide que un usuario se siga a sí mismo y evita duplicados en la colección.</p>
+     *
+     * @param usuario usuario al que se desea seguir.
      */
     public void seguirUsuario(Usuario usuario) {
         if (usuario != null && !usuario.equals(this) && !usuariosSeguidos.contains(usuario)) {
@@ -142,24 +207,30 @@ public class Usuario extends Persona {
         }
     }
 
-
     /**
-     * Deja de seguir a un usuario previamente seguido.
+     * Deja de seguir a un usuario que anteriormente era seguido.
      *
-     * @param usuario El usuario a dejar de seguir.
+     * @param usuario usuario a dejar de seguir.
      */
     public void dejarDeSeguirUsuario(Usuario usuario) {
         usuariosSeguidos.remove(usuario);
     }
 
-
     /**
-     * Retorna una copia segura de la lista de usuarios seguidos.
+     * Retorna una copia defensiva de la lista actual de usuarios seguidos.
      *
-     * @return Lista de usuarios seguidos por este usuario.
+     * @return copia de la colección de usuarios seguidos.
      */
     public List<Usuario> getListaUsuariosSeguidos() {
         return new LinkedList<>(usuariosSeguidos);
     }
 
+    /**
+     * Retorna el total de usuarios que este usuario sigue.
+     *
+     * @return cantidad de usuarios seguidos.
+     */
+    public int contarUsuariosSeguidos() {
+        return usuariosSeguidos.size();
+    }
 }

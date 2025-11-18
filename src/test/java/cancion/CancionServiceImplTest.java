@@ -2,7 +2,7 @@ package cancion;
 
 import co.edu.uniquindio.dto.cancion.RegistrarCancionDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
-import co.edu.uniquindio.graph.GrafoDeSimilitud;
+import co.edu.uniquindio.utils.estructuraDatos.GrafoDeSimilitud;
 import co.edu.uniquindio.mapper.CancionMapper;
 import co.edu.uniquindio.models.Artista;
 import co.edu.uniquindio.models.Cancion;
@@ -11,7 +11,6 @@ import co.edu.uniquindio.repo.ArtistaRepo;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.service.impl.CancionServiceImpl;
 import co.edu.uniquindio.service.utils.CloudinaryService;
-import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

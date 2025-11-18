@@ -1,7 +1,6 @@
 package co.edu.uniquindio.repo;
 
 import co.edu.uniquindio.models.Artista;
-import co.edu.uniquindio.models.Cancion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -5,16 +5,15 @@ import co.edu.uniquindio.dto.usuario.SugerenciaUsuariosDto;
 import co.edu.uniquindio.dto.usuario.UsuarioConexionDto;
 import co.edu.uniquindio.dto.usuario.UsuarioDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
-import co.edu.uniquindio.graph.GrafoSocial;
+import co.edu.uniquindio.utils.estructuraDatos.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
 import co.edu.uniquindio.repo.UsuarioRepo;
 import co.edu.uniquindio.service.UsuarioSocialService;
-import co.edu.uniquindio.utils.collections.MiLinkedList;
+import co.edu.uniquindio.utils.listasPropias.MiLinkedList;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;

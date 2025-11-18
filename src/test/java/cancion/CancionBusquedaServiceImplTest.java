@@ -1,21 +1,18 @@
 package cancion;
 
 import co.edu.uniquindio.dto.cancion.CancionDto;
-import co.edu.uniquindio.graph.TrieAutocompletado;
+import co.edu.uniquindio.utils.estructuraDatos.TrieAutocompletado;
 import co.edu.uniquindio.mapper.CancionMapper;
 import co.edu.uniquindio.models.Cancion;
-import co.edu.uniquindio.models.enums.GeneroMusical;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.service.impl.CancionBusquedaServiceImpl;
-import co.edu.uniquindio.utils.collections.MiLinkedList;
+import co.edu.uniquindio.utils.listasPropias.MiLinkedList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.time.LocalDate;
-import java.util.Iterator;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;

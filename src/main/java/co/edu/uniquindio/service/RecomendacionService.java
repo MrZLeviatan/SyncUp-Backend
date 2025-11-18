@@ -4,6 +4,7 @@ import co.edu.uniquindio.dto.playList.PlayListDto;
 import co.edu.uniquindio.dto.playList.RadioDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.models.Usuario;
+import co.edu.uniquindio.utils.estructuraDatos.GrafoDeSimilitud;
 
 /**
  * Contrato (Interfaz) para el servicio central de gestión y generación de Recomendaciones Musicales.
@@ -11,7 +12,7 @@ import co.edu.uniquindio.models.Usuario;
  * <p>Define las operaciones de alto nivel para generar contenido dinámico y personalizado,
  * como colas de reproducción tipo "Radio" y listas de descubrimiento semanal.
  *
- * <p>Este servicio típicamente hará uso del {@link co.edu.uniquindio.graph.GrafoDeSimilitud} para obtener sus resultados.
+ * <p>Este servicio típicamente hará uso del {@link GrafoDeSimilitud} para obtener sus resultados.
  *
  * @see playList
  * @see PlayListDto

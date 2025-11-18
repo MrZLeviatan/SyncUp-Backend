@@ -3,9 +3,7 @@ package co.edu.uniquindio.mapper;
 import co.edu.uniquindio.dto.cancion.CancionDto;
 import co.edu.uniquindio.dto.cancion.EditarCancionDto;
 import co.edu.uniquindio.dto.cancion.RegistrarCancionDto;
-import co.edu.uniquindio.dto.usuario.EditarUsuarioDto;
 import co.edu.uniquindio.models.Cancion;
-import co.edu.uniquindio.models.Usuario;
 import org.mapstruct.*;
 
 /**

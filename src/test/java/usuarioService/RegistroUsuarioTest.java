@@ -2,8 +2,7 @@ package usuarioService;
 
 import co.edu.uniquindio.dto.usuario.RegistrarUsuarioDto;
 import co.edu.uniquindio.exception.ElementoRepetidoException;
-import co.edu.uniquindio.graph.GrafoDeSimilitud;
-import co.edu.uniquindio.graph.GrafoSocial;
+import co.edu.uniquindio.utils.estructuraDatos.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
 import co.edu.uniquindio.repo.AdminRepo;

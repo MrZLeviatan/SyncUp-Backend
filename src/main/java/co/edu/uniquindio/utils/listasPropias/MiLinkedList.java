@@ -1,4 +1,4 @@
-package co.edu.uniquindio.utils.collections;
+package co.edu.uniquindio.utils.listasPropias;
 
 import java.util.Iterator;
 

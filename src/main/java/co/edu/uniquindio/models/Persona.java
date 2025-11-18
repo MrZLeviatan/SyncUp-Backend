@@ -10,14 +10,16 @@ import org.hibernate.annotations.Comment;
 import java.util.Objects;
 
 /**
- * Clase Abstracta Base que contiene los atributos y métodos comunes a todas las personas/usuarios del sistema.
+ * Clase base abstracta que concentra los atributos fundamentales compartidos por todas las
+ * entidades que representan personas dentro del sistema.
  *
- * <p>Esta clase está anotada con {@code @MappedSuperclass}, lo que significa que sus atributos de
- * mapeo (ID, nombre, username, password) se incluirán directamente en las tablas de las clases que la hereden
- * (por ejemplo, {@link Usuario} y {@link Admin}), pero no se mapeará a una tabla propia en la base de datos.
+ * <p>La anotación {@code @MappedSuperclass} indica que esta clase no se materializa como
+ * una tabla independiente en la base de datos. En su lugar, sus campos se integran dentro de
+ * las tablas de las subclases concretas que la extienden, tales como {@code Usuario} o {@code Admin}.
  *
- * <p>Define las propiedades esenciales para la autenticación y la identificación.
- *
+ * <p>Este diseño permite reutilizar propiedades esenciales asociadas a identificación,
+ * autenticación y trazabilidad, evitando duplicación de código y garantizando consistencia
+ * estructural en el modelo de datos.
  */
 @Getter
 @Setter
@@ -27,76 +29,83 @@ import java.util.Objects;
 public abstract class Persona {
 
     /**
-     * Identificador único de la persona.
-     * <p>Es la clave primaria en la tabla de la entidad concreta que herede esta clase.
-     * Generado automáticamente por la base de datos.
+     * Identificador único asignado a la persona.
+     *
+     * <p>Actúa como clave primaria en las entidades concretas que heredan esta clase.
+     * Su valor es autogenerado por el motor de persistencia, asegurando unicidad
+     * y eficiencia al momento de manejar referencias entre entidades.</p>
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)  // ID creado automáticamente por Oracle SQL
-    @Comment("ID interno único de la persona creado automáticamente por el sistema.")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Comment("Clave primaria generada automáticamente para identificar a la persona.")
     private Long id;
 
     /**
-     * Nombre completo de la persona (nombre y apellidos).
-     * <p>Campo obligatorio (`nullable = false`).
+     * Nombre completo del individuo, incluyendo nombres y apellidos.
+     *
+     * <p>Este atributo constituye un dato esencial de identificación y debe estar
+     * obligatoriamente presente en todas las entidades derivadas.</p>
      */
-    @Column(name = "nombre_completo", nullable = false) // El nombre no puede ser nulo.
-    @Comment("Nombre completo del usuario (nombre y apellidos).")
+    @Column(name = "nombre_completo", nullable = false)
+    @Comment("Nombre completo de la persona (incluye nombres y apellidos).")
     private String nombre;
 
     /**
-     * Nombre de usuario (Username) único para la autenticación.
-     * <p>Campo obligatorio (`nullable = false`) y debe ser único en la base de datos (`unique = true`).
+     * Identificador único utilizado para el proceso de autenticación.
+     *
+     * <p>Este campo forma parte del modelo de seguridad del sistema. Su unicidad es
+     * obligatoria para evitar conflictos durante el inicio de sesión y asegurar la
+     * correcta asociación de credenciales.</p>
      */
-    @Column(name = "username", nullable = false, unique = true) // Cada username debe ser único y no puede ser nulo
-    @Comment("Username único de la Persona.")
+    @Column(name = "username", nullable = false, unique = true)
+    @Comment("Nombre de usuario único utilizado para autenticación.")
     private String username;
 
     /**
-     * Contraseña cifrada para la autenticación del usuario.
-     * <p>Campo obligatorio (`nullable = false`). La contraseña debe almacenarse cifrada (hash) por seguridad.
+     * Contraseña cifrada asociada al usuario.
+     *
+     * <p>Nunca debe almacenarse en texto plano. El sistema debe aplicar algoritmos de
+     * hashing seguros (por ejemplo, BCrypt, Argon2 o PBKDF2) antes de persistir el valor.</p>
      */
-    @Column(name = "password", nullable = false)  // El password no puede ser nulo
-    @Comment("Contraseña cifrada del usuario para autenticación.")
+    @Column(name = "password", nullable = false)
+    @Comment("Contraseña protegida mediante cifrado para garantizar seguridad.")
     private String password;
 
 
-    // -------------------------------------------------------------------------------------------------
-    // Métodos `equals()` y `hashCode()`
-    // -------------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
+    // Métodos de igualdad y hash
+    // ---------------------------------------------------------------------------------------------
 
     /**
-     * Compara si esta instancia de {@code Persona} es igual a otro objeto.
-     * <p>La igualdad se basa exclusivamente en la unicidad del username, ya que este es un identificador
-     * de negocio clave y es único en el sistema.
+     * Determina si dos instancias de {@code Persona} representan el mismo registro
+     * a nivel lógico dentro del sistema.
      *
-     * @param o El objeto con el que se va a comparar.
-     * @return {@code true} si los usernames son iguales; {@code false} en caso contrario.
+     * <p>La comparación se basa en el campo {@code username}, dado que constituye un
+     * identificador de negocio único. De este modo, dos objetos se consideran equivalentes
+     * si comparten el mismo nombre de usuario, independientemente de otros atributos.</p>
+     *
+     * @param o objeto con el que se comparará esta instancia.
+     * @return {@code true} si ambos objetos poseen el mismo username; de lo contrario, {@code false}.
      */
     @Override
     public boolean equals(Object o) {
-        // Si es el mismo objeto en memoria
         if (this == o) return true;
-
-        // Si el objeto a comparar es nulo o de otra clase, no son iguales.
         if (o == null || getClass() != o.getClass()) return false;
 
         Persona persona = (Persona) o;
-
-        // Se comparan los usernames (únicos) de ambas Personas.
         return Objects.equals(username, persona.username);
     }
 
-
     /**
-     * Calcula el código hash del objeto basado en el campo 'username'.
-     * <p>Esto garantiza coherencia con el método {@code equals()}, cumpliendo con el contrato de Java.
+     * Calcula el valor hash de la instancia utilizando el campo {@code username}.
      *
-     * @return El valor del código hash basado en el username.
+     * <p>Este método es coherente con {@link #equals(Object)}, garantizando el cumplimiento
+     * del contrato definido por la API de Java para colecciones y estructuras de hashing.</p>
+     *
+     * @return valor hash derivado del username.
      */
     @Override
     public int hashCode() {
-        // Usa el campo 'username' para generar el hash.
         return Objects.hash(username);
     }
 

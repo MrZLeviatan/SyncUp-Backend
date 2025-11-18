@@ -1,7 +1,7 @@
 package cancion;
 
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
-import co.edu.uniquindio.graph.GrafoDeSimilitud;
+import co.edu.uniquindio.utils.estructuraDatos.GrafoDeSimilitud;
 import co.edu.uniquindio.mapper.CancionMapper;
 import co.edu.uniquindio.models.Artista;
 import co.edu.uniquindio.models.Cancion;

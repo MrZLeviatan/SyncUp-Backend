@@ -1,12 +1,10 @@
-package co.edu.uniquindio.graph;
+package co.edu.uniquindio.utils.estructuraDatos;
 
 import co.edu.uniquindio.models.Usuario;
-import co.edu.uniquindio.utils.collections.MiLinkedList;
-import co.edu.uniquindio.utils.collections.MiMap;
-import co.edu.uniquindio.utils.collections.MiSet;
+import co.edu.uniquindio.utils.listasPropias.MiLinkedList;
+import co.edu.uniquindio.utils.listasPropias.MiMap;
+import co.edu.uniquindio.utils.listasPropias.MiSet;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 /**
  * Representa un Grafo No Dirigido que modela las conexiones sociales (relaciones de amistad/seguimiento) entre {@link Usuario}s.

@@ -2,8 +2,6 @@ package co.edu.uniquindio.dto.usuario;
 
 import co.edu.uniquindio.dto.cancion.CancionDto;
 
-import java.util.List;
-
 /**
  * Objeto de Transferencia de Datos (DTO) que representa la información completa de un {@link co.edu.uniquindio.models.Usuario}.
  *

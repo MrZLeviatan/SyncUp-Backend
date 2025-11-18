@@ -4,6 +4,7 @@ import co.edu.uniquindio.dto.usuario.SugerenciaUsuariosDto;
 import co.edu.uniquindio.dto.usuario.UsuarioConexionDto;
 import co.edu.uniquindio.dto.usuario.UsuarioDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
+import co.edu.uniquindio.utils.estructuraDatos.GrafoSocial;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
  * (conexión y desconexión) y para generar recomendaciones de amistad utilizando la topología del grafo.
  *
  * <p>La implementación concreta de este servicio típicamente interactuará con el
- * {@link co.edu.uniquindio.graph.GrafoSocial} para modificar y consultar las conexiones.
+ * {@link GrafoSocial} para modificar y consultar las conexiones.
  *
  * @see UsuarioConexionDto
  * @see SugerenciaUsuariosDto
@@ -25,7 +26,7 @@ public interface UsuarioSocialService {
     /**
      * Establece una conexión social (seguimiento o amistad) entre los dos usuarios especificados en el DTO.
      *
-     * <p>Esta operación debe reflejarse en la estructura del {@link co.edu.uniquindio.graph.GrafoSocial}.
+     * <p>Esta operación debe reflejarse en la estructura del {@link GrafoSocial}.
      *
      * @param dto Objeto {@link UsuarioConexionDto} que contiene los IDs del usuario principal y del usuario objetivo.
      * @throws ElementoNoEncontradoException Si alguno de los IDs de usuario no existe.
@@ -36,7 +37,7 @@ public interface UsuarioSocialService {
     /**
      * Elimina la conexión social (dejar de seguir o eliminar amistad) entre los dos usuarios especificados en el DTO.
      *
-     * <p>Esta operación debe revertir la conexión en él {@link co.edu.uniquindio.graph.GrafoSocial}.
+     * <p>Esta operación debe revertir la conexión en él {@link GrafoSocial}.
      *
      * @param dto Objeto {@link UsuarioConexionDto} que contiene los IDs del usuario principal y del usuario objetivo.
      * @throws ElementoNoEncontradoException Si alguno de los IDs de usuario no existe.
@@ -47,7 +48,7 @@ public interface UsuarioSocialService {
     /**
      * Obtiene una lista de usuarios sugeridos para seguir, basados en el principio de "amigos de amigos".
      *
-     * <p>La implementación utiliza el algoritmo BFS sobre el {@link co.edu.uniquindio.graph.GrafoSocial}
+     * <p>La implementación utiliza el algoritmo BFS sobre el {@link GrafoSocial}
      * para encontrar usuarios que están a una distancia de dos aristas.
      *
      * @param idUsuario El ID del usuario para el cual se están buscando las sugerencias.

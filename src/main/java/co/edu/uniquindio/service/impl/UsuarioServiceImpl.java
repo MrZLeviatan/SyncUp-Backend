@@ -7,7 +7,7 @@ import co.edu.uniquindio.dto.usuario.UsuarioDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.exception.ElementoNoCoincideException;
 import co.edu.uniquindio.exception.ElementoRepetidoException;
-import co.edu.uniquindio.graph.GrafoSocial;
+import co.edu.uniquindio.utils.estructuraDatos.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
 import co.edu.uniquindio.repo.AdminRepo;
