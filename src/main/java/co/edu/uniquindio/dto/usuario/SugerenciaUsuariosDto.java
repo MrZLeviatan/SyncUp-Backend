@@ -17,6 +17,7 @@ public record SugerenciaUsuariosDto(
 
         Long id,
         String nombre,
-        String username
+        String username,
+        String fotoPerfilUrl
 ) {
 }
