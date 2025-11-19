@@ -1,4 +1,4 @@
-package co.edu.uniquindio.controller;
+package co.edu.uniquindio.controller.users;
 
 import co.edu.uniquindio.dto.MensajeDto;
 import co.edu.uniquindio.dto.admin.AdminDto;

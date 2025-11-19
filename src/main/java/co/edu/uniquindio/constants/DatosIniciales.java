@@ -1,5 +1,6 @@
 package co.edu.uniquindio.constants;
 
+import co.edu.uniquindio.models.Admin;
 import co.edu.uniquindio.repo.AdminRepo;
 import co.edu.uniquindio.repo.ArtistaRepo;
 import co.edu.uniquindio.repo.CancionRepo;

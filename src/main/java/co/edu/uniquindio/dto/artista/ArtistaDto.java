@@ -1,5 +1,7 @@
 package co.edu.uniquindio.dto.artista;
 
+import java.util.Set;
+
 /**
  * Record DTO (Data Transfer Object) utilizado para la transferencia de información básica de un Artista.
  *
@@ -13,6 +15,11 @@ package co.edu.uniquindio.dto.artista;
 public record ArtistaDto(
 
         Long id,
-        String nombreArtistico
+        String nombreArtistico,
+        String urlImagen,
+        String descripcion,
+        int seguidores,
+        Set<String> miembros
+
 ) {
 }

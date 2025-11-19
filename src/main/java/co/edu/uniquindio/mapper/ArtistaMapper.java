@@ -6,6 +6,9 @@ import co.edu.uniquindio.models.Artista;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Interfaz de mapeo (Mapper) para la entidad {@link Artista} y sus DTOs de registro y transferencia.
  *
@@ -27,7 +30,15 @@ public interface ArtistaMapper {
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "canciones", expression = "java(new java.util.HashSet<>())")
+    @Mapping(target = "albums", expression = "java(new java.util.HashSet<>())")
+    @Mapping(target = "urlImagen", ignore = true) // La imagen se maneja aparte
     Artista toEntity(RegistrarArtistasDto registrarArtistasDto);
+
+
+    // Método por defecto para copiar miembros
+    default Set<String> mapMiembros(Set<String> miembros) {
+        return miembros == null ? new HashSet<>() : new HashSet<>(miembros);
+    }
 
 
     /**

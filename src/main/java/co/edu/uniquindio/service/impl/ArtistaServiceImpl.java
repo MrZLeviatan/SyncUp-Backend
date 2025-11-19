@@ -3,6 +3,8 @@ package co.edu.uniquindio.service.impl;
 import co.edu.uniquindio.dto.artista.ArtistaDto;
 import co.edu.uniquindio.dto.artista.RegistrarArtistasDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
+import co.edu.uniquindio.exception.ElementoNoValidoException;
+import co.edu.uniquindio.utils.CloudinaryService;
 import co.edu.uniquindio.utils.estructuraDatos.TrieAutocompletado;
 import co.edu.uniquindio.mapper.ArtistaMapper;
 import co.edu.uniquindio.models.Artista;
@@ -31,6 +33,7 @@ public class ArtistaServiceImpl implements ArtistaService {
     private final ArtistaRepo artistaRepo;
     private final ArtistaMapper artistaMapper;
     private final TrieAutocompletado trieArtistas = new TrieAutocompletado();
+    private final CloudinaryService cloudinaryService;
 
 
 
@@ -60,21 +63,22 @@ public class ArtistaServiceImpl implements ArtistaService {
      */
     @Override
     public void agregarArtista(RegistrarArtistasDto registrarArtistasDto)
-            throws ElementoNoEncontradoException {
+            throws ElementoNoEncontradoException, ElementoNoValidoException {
 
-        // Verificar si el nombre artístico ya existe
-        boolean existe = artistaRepo.existsByNombreArtisticoIgnoreCase(
-                registrarArtistasDto.nombreArtistico()
-        );
-
-        if (existe) {
-            // Si ya existe, lanzar excepción
+        // Validamos si el nombre artistico no esta registrado
+        if (artistaRepo.existsByNombreArtisticoIgnoreCase(registrarArtistasDto.nombreArtistico())){
             throw new ElementoNoEncontradoException(
-                    "El nombre artístico '" + registrarArtistasDto.nombreArtistico() + "' ya está en uso."
-            );
+                    "El nombre artístico '" + registrarArtistasDto.nombreArtistico() + "' ya está en uso.");
         }
+
+        // Subimos la imagen del artista
+        String urlImage = cloudinaryService.uploadImage(registrarArtistasDto.imagenPortada());
+
         // Mapear el DTO a la entidad Artista.
         Artista artista = artistaMapper.toEntity(registrarArtistasDto);
+
+        // Asociamos la url de la imagan.
+        artista.setUrlImagen(urlImage);
 
         // Guardar la entidad en la base de datos.
         artistaRepo.save(artista);
@@ -96,6 +100,27 @@ public class ArtistaServiceImpl implements ArtistaService {
     public ArtistaDto obtenerArtistaId(Long idArtista) throws ElementoNoEncontradoException {
         // Llama al método auxiliar para buscar la entidad y luego la mapea a DTO.
         return artistaMapper.toDto(buscarArtistaId(idArtista));
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Este método implementa la interfaz correspondiente y retorna una lista
+     * de todos los artistas registrados en la base de datos.
+     * Cada entidad {@code Artista} es convertida a su DTO {@link ArtistaDto}
+     * mediante el mapeador {@code artistaMapper}.
+     * </p>
+     *
+     * @return Listado de {@link ArtistaDto} que representa todos los artistas existentes.
+     */
+    @Override
+    public List<ArtistaDto> listarArtistas() {
+        // Obtiene todas las entidades de artista, las convierte a DTO y las devuelve como lista
+        return artistaRepo.findAll()
+                .stream()
+                .map(artistaMapper::toDto)
+                .collect(Collectors.toList());
     }
 
 

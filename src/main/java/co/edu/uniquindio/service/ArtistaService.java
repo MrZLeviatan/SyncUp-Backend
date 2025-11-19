@@ -3,6 +3,7 @@ package co.edu.uniquindio.service;
 import co.edu.uniquindio.dto.artista.ArtistaDto;
 import co.edu.uniquindio.dto.artista.RegistrarArtistasDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
+import co.edu.uniquindio.exception.ElementoNoValidoException;
 
 import java.util.List;
 
@@ -22,7 +23,7 @@ public interface ArtistaService {
      *
      * @param registrarArtistasDto DTO con el nombre artístico a registrar.
      */
-    void agregarArtista(RegistrarArtistasDto registrarArtistasDto) throws ElementoNoEncontradoException;
+    void agregarArtista(RegistrarArtistasDto registrarArtistasDto) throws ElementoNoEncontradoException, ElementoNoValidoException;
 
 
     /**
@@ -33,6 +34,18 @@ public interface ArtistaService {
      * @throws ElementoNoEncontradoException Si el artista con el ID dado no existe.
      */
     ArtistaDto obtenerArtistaId(Long idArtista) throws ElementoNoEncontradoException;
+
+
+    /**
+     * Obtiene una lista de todos los artistas registrados.
+     * <p>
+     * Cada artista de la base de datos se convierte a su DTO {@link ArtistaDto}
+     * para exponer únicamente la información necesaria.
+     * </p>
+     *
+     * @return Lista de {@link ArtistaDto} con todos los artistas.
+     */
+    List<ArtistaDto> listarArtistas();
 
 
     /**
