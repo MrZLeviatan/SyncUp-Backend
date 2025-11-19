@@ -58,7 +58,7 @@ public class CancionServiceImpl implements CancionService {
     // Componente para la lógica de recomendación (grafo)
     private final GrafoDeSimilitud grafoDeSimilitud;
 
-    private final TrieAutocompletado trieCanciones = new TrieAutocompletado();
+    private final TrieAutocompletado trieCanciones;
 
 
     /**
@@ -177,6 +177,7 @@ public class CancionServiceImpl implements CancionService {
     @Override
     public void actualizarCancion(EditarCancionDto editarCancionDto) throws ElementoNoEncontradoException {
 
+
         // 1. Se busca la canción actualizar
         Cancion cancion = buscarCancionId(editarCancionDto.id());
 
@@ -201,6 +202,7 @@ public class CancionServiceImpl implements CancionService {
         }
 
     }
+
 
     /**
      * Elimina una canción del sistema y la remueve del grafo de similitud.
@@ -624,53 +626,64 @@ public class CancionServiceImpl implements CancionService {
     @Override
     public ByteArrayInputStream generarReporteGeneralCanciones() throws Exception {
 
-        // Obtener todas las canciones del repositorio de la base de datos.
+        // English: Get all songs from DB
+        // Español: Obtener todas las canciones de la BD
         List<Cancion> canciones = cancionRepo.findAll();
 
-        // Crear un flujo de salida en memoria (ByteArrayOutputStream) para almacenar temporalmente el contenido del reporte.
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-        // Inicializar un BufferedWriter para escribir texto de manera eficiente,
-        // envolviendo el flujo de bytes en un OutputStreamWriter para asegurar la codificación UTF-8.
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(baos, "UTF-8"))) {
 
-            // Encabezado del reporte
-            writer.write("==== REPORTE GENERAL DE CANCIONES ====");
+            // English: Header
+            // Español: Encabezado
+            writer.write("============== REPORTE GENERAL DE CANCIONES ==============");
             writer.newLine();
             writer.write("Total de canciones: " + canciones.size());
             writer.newLine();
             writer.newLine();
 
-            // Escribir la información detallada de cada canción
+            // English: Table header
+            // Español: Encabezado de tabla
+            writer.write(String.format(
+                    "%-5s %-25s %-15s %-15s %-20s %-10s",
+                    "ID", "Título", "Género", "Lanzamiento", "Artista", "Duración"
+            ));
+            writer.newLine();
+            writer.write("--------------------------------------------------------------------------" +
+                    "-------------------------");
+            writer.newLine();
+
+            // English: Write each song row
+            // Español: Escribir cada fila de la canción
             for (Cancion c : canciones) {
-                writer.write("ID: " + (c.getId() != null ? c.getId() : "N/A"));
-                writer.newLine();
-                writer.write("Título: " + (c.getTitulo() != null ? c.getTitulo() : "N/A"));
-                writer.newLine();
-                writer.write("Género: " + (c.getGeneroMusical() != null ? c.getGeneroMusical().toString() : "N/A"));
-                writer.newLine();
-                writer.write("Fecha de lanzamiento: " + (c.getFechaLanzamiento() != null ? c.getFechaLanzamiento().toString() : "N/A"));
-                writer.newLine();
-                writer.write("Artista: " +
-                        (c.getArtistaPrincipal() != null && c.getArtistaPrincipal().getNombreArtistico() != null
-                                ? c.getArtistaPrincipal().getNombreArtistico() : "N/A"));
-                writer.newLine();
-                writer.write("Duración: " + (c.getDuracion() != null ? c.getDuracion() : "N/A"));
-                writer.newLine();
-                writer.write("----------------------------------------");
+
+                String id = c.getId() != null ? c.getId().toString() : "N/A";
+                String titulo = c.getTitulo() != null ? c.getTitulo() : "N/A";
+                String genero = c.getGeneroMusical() != null ? c.getGeneroMusical().toString() : "N/A";
+                String fecha = c.getFechaLanzamiento() != null ? c.getFechaLanzamiento().toString() : "N/A";
+
+                String artista = (c.getArtistaPrincipal() != null &&
+                        c.getArtistaPrincipal().getNombreArtistico() != null)
+                        ? c.getArtistaPrincipal().getNombreArtistico()
+                        : "N/A";
+
+                String duracion = c.getDuracion() != null ? c.getDuracion().toString() : "N/A";
+
+                writer.write(String.format(
+                        "%-5s %-25s %-15s %-15s %-20s %-10s",
+                        id, titulo, genero, fecha, artista, duracion
+                ));
                 writer.newLine();
             }
 
-            // Asegurar que todos los datos en el buffer se escriban al ByteArrayOutputStream.
             writer.flush();
 
         } catch (IOException e) {
-            // Capturar errores de I/O y relanzarlos como una excepción general con el mensaje.
-            throw new Exception("Error al generar el archivo TXT: " + e.getMessage(), e);
+            throw new Exception("Error al generar archivo TXT: " + e.getMessage(), e);
         }
 
-        // Convertir el contenido a flujo de entrada (para descarga)
         return new ByteArrayInputStream(baos.toByteArray());
     }
+
 
 }

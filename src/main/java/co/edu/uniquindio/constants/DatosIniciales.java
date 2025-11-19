@@ -33,14 +33,15 @@ public class DatosIniciales  implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
 
-/**
 
+/**
         // Plantilla para quemar Admin
         Admin admin = new Admin();
         admin.setNombre("admin");
         admin.setUsername("admin123");
         admin.setPassword(passwordEncoder.encode("admin"));
         adminRepo.save(admin);
+
 
 
         // Plantilla para quemar Usuario

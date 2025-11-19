@@ -25,7 +25,8 @@ public record UsuarioDto(
         Long id,
         String nombre,
         String username,
-        String password
+        String password,
+        String fotoPerfilUrl
 
 ) {
 }
