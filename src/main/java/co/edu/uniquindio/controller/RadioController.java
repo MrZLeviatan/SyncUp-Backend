@@ -4,7 +4,7 @@ import co.edu.uniquindio.dto.MensajeDto;
 import co.edu.uniquindio.dto.playList.PlayListDto;
 import co.edu.uniquindio.dto.playList.RadioDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
-import co.edu.uniquindio.service.RecomendacionService;
+import co.edu.uniquindio.service.RadioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,10 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/recomendacion") // Prefijo base para todos los endpoints de este controlador.
 @RequiredArgsConstructor
-public class RecomendacionCancionController {
+public class RadioController {
 
     // Inyección de la dependencia del servicio de recomendación.
-    private final RecomendacionService recomendacionService;
+    private final RadioService recomendacionService;
 
 
     /**

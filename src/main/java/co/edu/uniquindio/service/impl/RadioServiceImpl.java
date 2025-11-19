@@ -10,7 +10,7 @@ import co.edu.uniquindio.models.Cancion;
 import co.edu.uniquindio.models.Usuario;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.repo.UsuarioRepo;
-import co.edu.uniquindio.service.RecomendacionService;
+import co.edu.uniquindio.service.RadioService;
 import co.edu.uniquindio.utils.listasPropias.MiLinkedList;
 import co.edu.uniquindio.utils.listasPropias.MiMap;
 import co.edu.uniquindio.utils.listasPropias.MiSet;
@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Implementación concreta de la interfaz {@link RecomendacionService}.
+ * Implementación concreta de la interfaz {@link RadioService}.
  *
  * <p>Contiene la lógica de negocio para generar colas de radio y listas de reproducción
  * personalizadas, utilizando el {@link GrafoDeSimilitud}.
@@ -33,12 +33,12 @@ import java.util.stream.Collectors;
  * <p>Utiliza Spring Data JPA ({@link CancionRepo}) para la búsqueda inicial de entidades y MapStruct
  * ({@link CancionMapper}) para la transformación de entidades a DTOs.
  *
- * @see RecomendacionService
+ * @see RadioService
  * @see GrafoDeSimilitud
  */
 @Service
 @RequiredArgsConstructor
-public class RecomendacionServiceImpl implements RecomendacionService {
+public class RadioServiceImpl implements RadioService {
 
     // Servicio que proporciona acceso al grafo de similitud precálculo
     private final GrafoDeSimilitud grafo;

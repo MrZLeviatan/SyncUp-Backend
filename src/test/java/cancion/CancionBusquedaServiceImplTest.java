@@ -5,7 +5,6 @@ import co.edu.uniquindio.utils.estructuraDatos.TrieAutocompletado;
 import co.edu.uniquindio.mapper.CancionMapper;
 import co.edu.uniquindio.models.Cancion;
 import co.edu.uniquindio.repo.CancionRepo;
-import co.edu.uniquindio.service.impl.CancionBusquedaServiceImpl;
 import co.edu.uniquindio.utils.listasPropias.MiLinkedList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

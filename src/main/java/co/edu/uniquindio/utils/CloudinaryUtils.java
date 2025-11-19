@@ -21,7 +21,7 @@ import java.util.Map;
  * <p>El servicio utiliza inyección de valores desde `application.properties` para las credenciales de Cloudinary.
  */
 @Service
-public class CloudinaryService {
+public class CloudinaryUtils {
 
     // Inyecta el nombre de la nube desde application.properties
     @Value("${cloudinary.cloud-name}")

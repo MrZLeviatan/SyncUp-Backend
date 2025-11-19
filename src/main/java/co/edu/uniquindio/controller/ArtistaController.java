@@ -1,4 +1,4 @@
-package co.edu.uniquindio.controller.users;
+package co.edu.uniquindio.controller;
 
 import co.edu.uniquindio.dto.MensajeDto;
 import co.edu.uniquindio.dto.artista.ArtistaDto;

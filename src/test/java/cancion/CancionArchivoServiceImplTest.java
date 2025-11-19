@@ -10,7 +10,6 @@ import co.edu.uniquindio.models.enums.GeneroMusical;
 import co.edu.uniquindio.repo.ArtistaRepo;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.repo.UsuarioRepo;
-import co.edu.uniquindio.service.impl.CancionArchivoServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

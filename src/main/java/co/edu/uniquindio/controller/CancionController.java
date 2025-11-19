@@ -10,13 +10,17 @@ import co.edu.uniquindio.service.CancionService;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.UnsupportedTagException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 
 /**
@@ -209,5 +213,129 @@ public class CancionController {
         // Devuelve una respuesta exitosa (código 200) con el cuerpo del JSON.
         return ResponseEntity.ok(cancionService.obtenerMetricasCanciones());
     }
+
+
+
+    /**
+     * Endpoint para obtener sugerencias de autocompletado de títulos de canciones.
+     *
+     * <p>Utiliza una estructura Trie en la capa de servicio para ofrecer una respuesta muy rápida.</p>
+     *
+     * @param prefijo Texto parcial del título a buscar, obtenido como parámetro de consulta.
+     * @return Una respuesta HTTP 200 OK con una lista de {@code CancionDto}s coincidentes.
+     */
+    @GetMapping("/autocompletar")
+    @PreAuthorize("hasAnyRole('USUARIO','ADMIN')") // Permite el acceso a USUARIO y ADMIN.
+    public ResponseEntity<MensajeDto<List<CancionDto>>> autocompletarCanciones(@RequestParam String prefijo) {
+        // Llama al servicio para ejecutar la búsqueda por prefijo (síncrona y rápida).
+        List<CancionDto> resultados = cancionService.autocompletarTitulos(prefijo);
+        // Retorna la respuesta 200 OK con los resultados envueltos en MensajeDto.
+        return ResponseEntity.ok().body(new MensajeDto<>(false,resultados));
+    }
+
+
+    /**
+     * Endpoint para listar y filtrar canciones mediante criterios y paginación, ejecutándose de forma asíncrona.
+     *
+     * <p>Retorna un {@code CompletableFuture}, delegando a Spring la gestión del hilo de ejecución
+     * y permitiendo que la respuesta se complete cuando el resultado del servicio esté disponible.</p>
+     *
+     * @param artista Filtro opcional por nombre del artista.
+     * @param genero Filtro opcional por género musical.
+     * @param anioLanzamiento Filtro opcional por año de lanzamiento.
+     * @param pagina El número de página solicitado (por defecto 0).
+     * @param size El tamaño de la página (por defecto 10).
+     * @return Un {@code CompletableFuture} que se resolverá en un {@code ResponseEntity<List<CancionDto>>}.
+     */
+    @GetMapping("/filtrar")
+    //@PreAuthorize("hasAnyRole('USUARIO','ADMIN')") // Permite el acceso a USUARIO y ADMIN.
+    public CompletableFuture<ResponseEntity<List<CancionDto>>> listarCancionesFiltro(
+            @RequestParam(required = false) String artista, // Parámetro opcional.
+            @RequestParam(required = false) String genero, // Parámetro opcional.
+            @RequestParam(required = false) Integer anioLanzamiento, // Parámetro opcional.
+            @RequestParam(defaultValue = "0") int pagina, // Parámetro con valor por defecto.
+            @RequestParam(defaultValue = "10") int size) { // Parámetro con valor por defecto.
+
+        // Llama al servicio, que retorna un CompletableFuture (la tarea se ejecuta en segundo plano).
+        return cancionService.listarCancionesFiltro(artista, genero, anioLanzamiento, pagina, size)
+                // Cuando el CompletableFuture del servicio se completa con la lista (List<CancionDto>),
+                // la función thenApply la envuelve en un ResponseEntity 200 OK.
+                .thenApply(ResponseEntity::ok);
+    }
+
+
+    /**
+     * Endpoint que genera y devuelve un CSV con las canciones favoritas del usuario.
+     * La respuesta HTTP es el propio archivo (el navegador inicia la descarga).
+     *
+     * @param usuarioId id del usuario cuyas canciones favoritas se exportarán
+     * @return ResponseEntity con el CSV como bytes y cabeceras para descarga
+     * @throws ElementoNoEncontradoException si el usuario no existe
+     * @throws IOException en caso de error al leer los bytes del stream
+     */
+    @GetMapping("/reporte-favoritos/{usuarioId}")
+    @PreAuthorize("hasRole('USUARIO')") // Restringe el acceso solo a usuarios con el rol 'USUARIO'.
+    public ResponseEntity<byte[]> descargarReporteFavoritos(@PathVariable Long usuarioId)
+            throws ElementoNoEncontradoException, IOException, Exception {
+
+        // Llamar al servicio para generar el CSV en memoria y obtener un stream
+        ByteArrayInputStream csvStream = cancionService.generarReporteFavoritos(usuarioId);
+
+        // Leer todos los bytes del stream (contenido completo del CSV)
+        byte[] csvBytes = csvStream.readAllBytes();
+
+        // Preparar las cabeceras HTTP para indicar que la respuesta es un archivo descargable
+        HttpHeaders headers = new HttpHeaders();
+        // Indicar al navegador que guarde el contenido como un archivo con nombre "favoritos.csv"
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"favoritos.csv\"");
+        // Indicar el tipo MIME del contenido como CSV
+        headers.add(HttpHeaders.CONTENT_TYPE, "text/csv; charset=UTF-8");
+        // Se puede añadir longitud de contenido (opcional)
+        headers.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(csvBytes.length));
+
+        // Devolver la respuesta con código 200 OK, cabeceras y el cuerpo binario (archivo)
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(csvBytes);
+    }
+
+
+
+    /**
+     * Endpoint que genera y devuelve un TXT con todas las canciones registradas en el sistema.
+     *
+     * <p>Recupera el reporte generado en formato {@code ByteArrayInputStream} desde la capa de servicio
+     * y configura las cabeceras HTTP necesarias para forzar la descarga del archivo por parte del navegador.</p>
+     *
+     * @return {@code ResponseEntity<byte[]>} con el archivo TXT y cabeceras para descarga.
+     * @throws Exception Sí ocurre un error durante la generación del reporte o la lectura de bytes.
+     */
+    @GetMapping("/reporte-general")
+    @PreAuthorize("hasRole('ADMIN')") // Solo administradores pueden descargar el reporte general.
+    public ResponseEntity<byte[]> descargarReporteGeneralCanciones() throws Exception {
+
+        // Llamar al servicio para generar el reporte TXT y obtenerlo como un flujo de entrada en memoria.
+        ByteArrayInputStream txtStream = cancionService.generarReporteGeneralCanciones();
+
+        // Convertir el flujo de entrada (InputStream) a un arreglo de bytes ([]byte) para el cuerpo de la respuesta HTTP.
+        byte[] txtBytes = txtStream.readAllBytes();
+
+        // Preparar un objeto HttpHeaders para configurar las cabeceras de la respuesta.
+        HttpHeaders headers = new HttpHeaders();
+        // 1. Cabecera Content-Disposition: Indica al navegador que debe descargar el contenido y sugiere el nombre del archivo.
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"reporte_canciones.txt\"");
+        // 2. Cabecera Content-Type: Especifica que el cuerpo de la respuesta es texto plano con codificación UTF-8.
+        headers.add(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8");
+        // 3. Cabecera Content-Length: Especifica el tamaño exacto del archivo en bytes.
+        headers.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(txtBytes.length));
+
+        // Retornar la respuesta final con el archivo.
+        return ResponseEntity.ok()
+                .headers(headers) // Asigna las cabeceras preparadas.
+                .contentType(MediaType.parseMediaType("text/plain")) // Define el tipo de contenido nuevamente para claridad.
+                .body(txtBytes); // Asigna el contenido del archivo al cuerpo de la respuesta.
+    }
+
 
 }

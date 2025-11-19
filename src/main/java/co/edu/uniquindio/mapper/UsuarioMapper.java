@@ -37,8 +37,6 @@ public interface UsuarioMapper {
     @Mapping(target = "fotoPerfilUrl", ignore = true)
     // Inicializa la lista vacía de canciones favoritas
     @Mapping(target = "cancionesFavoritas", expression = "java(new java.util.LinkedList<>())")
-    // Inicializa la lista vacía de albums favoritos
-    @Mapping(target = "albumsGustados", expression = "java(new java.util.LinkedList<>())")
     // Inicializa la lista vacía de artistas favoritos
     @Mapping(target = "artistasGustados", expression = "java(new java.util.LinkedList<>())")
     // Inicializa la lista vacía de usuarios seguidos

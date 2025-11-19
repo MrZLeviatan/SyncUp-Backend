@@ -4,7 +4,7 @@ import co.edu.uniquindio.dto.artista.ArtistaDto;
 import co.edu.uniquindio.dto.artista.RegistrarArtistasDto;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.exception.ElementoNoValidoException;
-import co.edu.uniquindio.utils.CloudinaryService;
+import co.edu.uniquindio.utils.CloudinaryUtils;
 import co.edu.uniquindio.utils.estructuraDatos.TrieAutocompletado;
 import co.edu.uniquindio.mapper.ArtistaMapper;
 import co.edu.uniquindio.models.Artista;
@@ -33,7 +33,7 @@ public class ArtistaServiceImpl implements ArtistaService {
     private final ArtistaRepo artistaRepo;
     private final ArtistaMapper artistaMapper;
     private final TrieAutocompletado trieArtistas = new TrieAutocompletado();
-    private final CloudinaryService cloudinaryService;
+    private final CloudinaryUtils cloudinaryUtils;
 
 
 
@@ -72,7 +72,7 @@ public class ArtistaServiceImpl implements ArtistaService {
         }
 
         // Subimos la imagen del artista
-        String urlImage = cloudinaryService.uploadImage(registrarArtistasDto.imagenPortada());
+        String urlImage = cloudinaryUtils.uploadImage(registrarArtistasDto.imagenPortada());
 
         // Mapear el DTO a la entidad Artista.
         Artista artista = artistaMapper.toEntity(registrarArtistasDto);

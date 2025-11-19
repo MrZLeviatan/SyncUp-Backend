@@ -10,7 +10,7 @@ import co.edu.uniquindio.models.Cancion;
 import co.edu.uniquindio.models.enums.GeneroMusical;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.repo.UsuarioRepo;
-import co.edu.uniquindio.service.impl.RecomendacionServiceImpl;
+import co.edu.uniquindio.service.impl.RadioServiceImpl;
 import co.edu.uniquindio.utils.listasPropias.MiMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Pruebas unitarias para el método {@link RecomendacionServiceImpl#iniciarRadio(Long)}.
+ * Pruebas unitarias para el método {@link RadioServiceImpl#iniciarRadio(Long)}.
  *
  * <p>Incluye:
  * <ul>
@@ -54,7 +54,7 @@ public class RecomendacionServiceIniciarRadioTest {
 
     /** Instancia del servicio bajo pruebas. */
     @InjectMocks
-    private RecomendacionServiceImpl recomendacionService;
+    private RadioServiceImpl recomendacionService;
 
     /** Objeto grafo simulado. */
     private GrafoDeSimilitud grafoMock;
@@ -66,11 +66,11 @@ public class RecomendacionServiceIniciarRadioTest {
         grafoMock = mock(GrafoDeSimilitud.class);
 
         // Crea una nueva instancia del servicio con dependencias
-        recomendacionService = new RecomendacionServiceImpl(grafo,cancionRepo, usuarioRepo, cancionMapper);
+        recomendacionService = new RadioServiceImpl(grafo,cancionRepo, usuarioRepo, cancionMapper);
 
         // Inyecta el grafo simulado al campo privado del servicio
         try {
-            var field = RecomendacionServiceImpl.class.getDeclaredField("grafo");
+            var field = RadioServiceImpl.class.getDeclaredField("grafo");
             field.setAccessible(true);
             field.set(recomendacionService, grafoMock);
         } catch (Exception e) {

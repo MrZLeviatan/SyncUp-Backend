@@ -94,14 +94,6 @@ public class Cancion {
     @Comment("Artista principal vinculado.")
     private Artista artistaPrincipal;
 
-    /**
-     * Álbum al cual pertenece la canción. Un álbum agrupa un conjunto de canciones
-     * relacionadas por temática, fecha de producción o lanzamiento comercial.
-     */
-    @ManyToOne()
-    @JoinColumn(name = "album_id", nullable = false)
-    @Comment("Álbum que agrupa esta canción.")
-    private Album album;
 
 
     // -------------------------------------------------------------------------------------------------

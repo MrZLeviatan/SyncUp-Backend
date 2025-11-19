@@ -1,20 +1,18 @@
 package co.edu.uniquindio.service.impl;
 
-import co.edu.uniquindio.dto.usuario.EditarPasswordDto;
-import co.edu.uniquindio.dto.usuario.EditarUsuarioDto;
-import co.edu.uniquindio.dto.usuario.RegistrarUsuarioDto;
-import co.edu.uniquindio.dto.usuario.UsuarioDto;
+import co.edu.uniquindio.dto.usuario.*;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.exception.ElementoNoCoincideException;
 import co.edu.uniquindio.exception.ElementoNoValidoException;
 import co.edu.uniquindio.exception.ElementoRepetidoException;
-import co.edu.uniquindio.utils.CloudinaryService;
+import co.edu.uniquindio.utils.CloudinaryUtils;
 import co.edu.uniquindio.utils.estructuraDatos.GrafoSocial;
 import co.edu.uniquindio.mapper.UsuarioMapper;
 import co.edu.uniquindio.models.Usuario;
 import co.edu.uniquindio.repo.AdminRepo;
 import co.edu.uniquindio.repo.UsuarioRepo;
 import co.edu.uniquindio.service.UsuarioService;
+import co.edu.uniquindio.utils.listasPropias.MiLinkedList;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.Getter;
@@ -25,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Implementación del servicio de gestión del ciclo de vida del {@link Usuario} ({@link UsuarioService}).
@@ -55,9 +54,10 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final PasswordEncoder passwordEncoder;
 
     /** Componente auxiliar para la carga de imagenes */
-    private final CloudinaryService cloudinaryService;
+    private final CloudinaryUtils cloudinaryUtils;
 
     private final GrafoSocial grafoSocial;
+
 
     // Solo para pruebas unitarias o validación interna
     /**
@@ -66,6 +66,35 @@ public class UsuarioServiceImpl implements UsuarioService {
      */
     @Getter
     private final HashMap<String, Usuario> indiceUsuarios = new HashMap<>();
+
+
+    /**
+     * Inicializa la estructura del {@link GrafoSocial} al arrancar la aplicación.
+     *
+     * <p>El método {@code @PostConstruct} garantiza que el grafo se construya una sola vez con
+     * todas las conexiones existentes en la base de datos, optimizando el rendimiento de las
+     * subsecuentes búsquedas de sugerencias.
+     */
+    @PostConstruct
+    public void inicializarGrafo() {
+
+        // Obtiene todos los usuarios desde el repositorio (base de datos).
+        List<Usuario> usuarios = usuarioRepo.findAllConUsuariosSeguidos();
+
+        // Agrega cada usuario como nodo dentro del grafo.
+        usuarios.forEach(grafoSocial::agregarUsuario);
+
+        // Recorre cada usuario para establecer las conexiones existentes.
+        for (Usuario u : usuarios) {
+
+            // Por cada usuario seguido, se crea una arista en el grafo.
+            for (Usuario seguido : u.getUsuariosSeguidos()) {
+
+                // Conecta los nodos correspondientes en el grafo.
+                grafoSocial.conectarUsuarios(u, seguido);
+            }
+        }
+    }
 
 
     /**
@@ -102,7 +131,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         // 2, Se sube la imagen de la foto de perfil del usuario.
-        String urlImage = cloudinaryService.uploadImage(registrarUsuarioDto.fotoPerfil());
+        String urlImage = cloudinaryUtils.uploadImage(registrarUsuarioDto.fotoPerfil());
 
         // 3. Convierte el DTO en entidad Usuario usando el mapper
         Usuario usuario = usuarioMapper.toEntity(registrarUsuarioDto);
@@ -289,4 +318,112 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepo.findById(idUsuario)
                 .orElseThrow(() -> new ElementoNoEncontradoException("Usuario no encontrado por su Id"));
     }
+
+
+
+    /**
+     * Establece una conexión de seguimiento entre dos usuarios.
+     *
+     * <p>Realiza la actualización tanto en el modelo de dominio (persistencia) como en el grafo en memoria.
+     *
+     * @param dto Objeto {@link UsuarioConexionDto} con los IDs de los usuarios.
+     * @throws ElementoNoEncontradoException Si el usuario principal o el objetivo no existen.
+     */
+    @Override
+    public void seguirUsuario(UsuarioConexionDto dto) throws ElementoNoEncontradoException {
+
+        // Busca el usuario principal por su ID, lanza excepción si no existe.
+        Usuario principal = buscarUsuarioId(dto.idUsuarioPrincipal());
+        // Busca el usuario objetivo (a seguir) por su ID.
+        Usuario objetivo = buscarUsuarioId(dto.idUsuarioObjetivo());
+
+        // Agrega la relación de seguimiento en el modelo de dominio.
+        principal.seguirUsuario(objetivo);
+
+        // Guarda los cambios del usuario principal en la base de datos.
+        usuarioRepo.save(principal);
+
+        // Actualiza el grafo agregando la conexión.
+        grafoSocial.conectarUsuarios(principal, objetivo);
+    }
+
+
+    /**
+     * Elimina una conexión de seguimiento entre dos usuarios.
+     *
+     * <p>Actualiza la persistencia y el grafo para reflejar que un usuario ha dejado de seguir a otro.
+     *
+     * @param dto Objeto {@link UsuarioConexionDto} con los IDs de los usuarios.
+     * @throws ElementoNoEncontradoException Si el usuario principal o el objetivo no existen.
+     */
+    @Override
+    public void dejarDeSeguirUsuario(UsuarioConexionDto dto) throws ElementoNoEncontradoException {
+        // Busca el usuario principal por su ID, lanza excepción si no existe.
+        Usuario principal = buscarUsuarioId(dto.idUsuarioPrincipal());
+        // Busca el usuario objetivo (a seguir) por su ID.
+        Usuario objetivo = buscarUsuarioId(dto.idUsuarioObjetivo());
+
+        // Elimina la relación de seguimiento en el modelo de dominio.
+        principal.dejarDeSeguirUsuario(objetivo);
+
+        // Persiste los cambios en la base de datos.
+        usuarioRepo.save(principal);
+
+        // Actualiza el grafo removiendo la conexión.
+        grafoSocial.desconectarUsuarios(principal, objetivo);
+    }
+
+
+    /**
+     * Obtiene una lista de sugerencias de usuarios (amigos de amigos).
+     *
+     * <p>La lógica de búsqueda (BFS a distancia 2) se delega completamente al {@link GrafoSocial},
+     * garantizando una alta velocidad de respuesta.
+     *
+     * @param idUsuario El ID del usuario para el cual se buscan las sugerencias.
+     * @return Una {@code List} de {@link SugerenciaUsuariosDto} con los usuarios sugeridos.
+     * @throws ElementoNoEncontradoException Si el usuario base no existe.
+     */
+    @Override
+    public List<SugerenciaUsuariosDto> obtenerSugerencias(Long idUsuario) throws ElementoNoEncontradoException {
+
+        // Busca al usuario en la base de datos.
+        Usuario usuario = buscarUsuarioId(idUsuario);
+
+        // Obtiene una lista de usuarios sugeridos usando el grafo.
+        MiLinkedList<Usuario> sugeridos = grafoSocial.obtenerAmigosDeAmigos(usuario);
+
+        // Convierte cada entidad sugerida en su respectivo DTO.
+        return sugeridos.stream()
+                .map(usuarioMapper::toDtoSugerenciaUsuarios)
+                .collect(Collectors.toList());
+    }
+
+
+    /**
+     * Obtiene una lista de todos los usuarios que el usuario con el ID especificado está siguiendo actualmente.
+     *
+     * <p>El método utiliza el modelo de dominio para acceder a la lista de relaciones sociales del usuario.</p>
+     *
+     * @param idUsuario El identificador único del usuario principal.
+     * @return Una lista de {@link UsuarioDto} con la información de los usuarios seguidos.
+     * @throws ElementoNoEncontradoException Si el {@code idUsuario} no corresponde a un usuario existente.
+     */
+    @Override
+    public List<UsuarioDto> obtenerUsuariosSeguidos(Long idUsuario) throws ElementoNoEncontradoException {
+
+        // 1. Busca la entidad Usuario por su ID
+        Usuario usuario = buscarUsuarioId(idUsuario);
+
+        // 2. Accede a la lista de usuarios que el usuario principal tiene registrados como 'seguidos'
+        List<Usuario> usuariosSeguidos = usuario.getListaUsuariosSeguidos();
+
+        // 3. Mapea la lista de entidades Usuario a una lista de DTOs antes de retornarla.
+        return usuariosSeguidos.stream()
+                .map(usuarioMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+
+
 }

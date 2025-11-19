@@ -110,16 +110,6 @@ public class Artista {
     @Comment("Canciones donde el artista es el intérprete principal.")
     private Set<Cancion> canciones = new HashSet<>();
 
-    /**
-     * Álbumes publicados por el artista.
-     *
-     * <p>Relación uno-a-muchos: un artista puede publicar varios álbumes, y cada
-     * álbum está asociado exclusivamente a un artista.</p>
-     */
-    @OneToMany(mappedBy = "artista", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Comment("Álbumes oficiales publicados por el artista.")
-    private Set<Album> albums = new HashSet<>();
-
 
     // --------------------------------------------------------------------
     // Métodos utilitarios (Canciones)
@@ -169,52 +159,6 @@ public class Artista {
 
 
     // --------------------------------------------------------------------
-    // Métodos utilitarios (Álbumes)
-    // --------------------------------------------------------------------
-
-    /**
-     * Agrega un álbum al artista y establece la relación bidireccional.
-     *
-     * <p>Si el álbum no tiene referenciado a este artista, se actualiza la
-     * relación para conservar la integridad.</p>
-     *
-     * @param album Álbum que será agregado.
-     * @throws IllegalArgumentException si el álbum es nulo.
-     */
-    public void agregarAlbum(Album album) {
-        if (album == null) {
-            throw new IllegalArgumentException("El álbum no puede ser nulo.");
-        }
-
-        this.albums.add(album);
-
-        if (album.getArtista() != this) {
-            album.setArtista(this);
-        }
-    }
-
-    /**
-     * Elimina un álbum asociado al artista.
-     *
-     * <p>Si el álbum pertenece al conjunto actual, se elimina y se limpia
-     * la referencia para evitar inconsistencias en la relación.</p>
-     *
-     * @param album Álbum que será removido.
-     */
-    public void eliminarAlbum(Album album) {
-        if (album == null || !this.albums.contains(album)) {
-            return;
-        }
-
-        this.albums.remove(album);
-
-        if (album.getArtista() == this) {
-            album.setArtista(null);
-        }
-    }
-
-
-    // --------------------------------------------------------------------
     // Métodos adicionales
     // --------------------------------------------------------------------
 
@@ -237,34 +181,6 @@ public class Artista {
      */
     public void disminuirSeguidores() {
         this.seguidores--;
-    }
-
-    /**
-     * Agrega un nuevo miembro a la banda o proyecto musical.
-     *
-     * <p>El nombre del miembro no puede ser nulo ni estar vacío. Si ya existe
-     * dentro del conjunto, no se agrega nuevamente.</p>
-     *
-     * @param nombreMiembro Nombre del nuevo integrante.
-     * @throws IllegalArgumentException si el nombre está vacío o es nulo.
-     */
-    public void agregarMiembro(String nombreMiembro) {
-        if (nombreMiembro == null || nombreMiembro.isBlank()) {
-            throw new IllegalArgumentException("El nombre del miembro no puede estar vacío.");
-        }
-        miembros.add(nombreMiembro);
-    }
-
-    /**
-     * Elimina un miembro existente del conjunto de integrantes.
-     *
-     * <p>Si el nombre no existe dentro del conjunto, la operación no tiene
-     * efecto.</p>
-     *
-     * @param nombreMiembro Nombre del integrante a eliminar.
-     */
-    public void eliminarMiembro(String nombreMiembro) {
-        miembros.remove(nombreMiembro);
     }
 
 }

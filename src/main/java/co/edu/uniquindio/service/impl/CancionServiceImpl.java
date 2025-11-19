@@ -14,21 +14,25 @@ import co.edu.uniquindio.repo.ArtistaRepo;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.repo.UsuarioRepo;
 import co.edu.uniquindio.service.CancionService;
-import co.edu.uniquindio.utils.CloudinaryService;
+import co.edu.uniquindio.utils.CloudinaryUtils;
+import co.edu.uniquindio.utils.estructuraDatos.TrieAutocompletado;
+import co.edu.uniquindio.utils.listasPropias.MiLinkedList;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.UnsupportedTagException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import com.mpatric.mp3agic.Mp3File;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 
@@ -50,9 +54,30 @@ public class CancionServiceImpl implements CancionService {
     private final UsuarioRepo usuarioRepo;
 
     // Componente para la lógica de guardado de Imágenes y Canciones en la nube
-    private final CloudinaryService cloudinaryService;
+    private final CloudinaryUtils cloudinaryUtils;
     // Componente para la lógica de recomendación (grafo)
     private final GrafoDeSimilitud grafoDeSimilitud;
+
+    private final TrieAutocompletado trieCanciones = new TrieAutocompletado();
+
+
+    /**
+     * Método auxiliar para asegurar que el Trie (Árbol de Prefijos) esté cargado con todos los títulos de canciones.
+     *
+     * <p>Este método se ejecuta condicionalmente solo si el Trie está vacío, garantizando
+     * que la carga desde la base de datos solo se haga una vez durante el ciclo de vida de la aplicación.</p>
+     */
+    private void inicializarTrie() {
+        // Verifica si el Trie está vacío realizando una búsqueda de prefijo vacío.
+        if (trieCanciones.autocompletar("").isEmpty()) {
+            // Si está vacío, se obtienen todos los títulos de la base de datos.
+            List<Cancion> canciones = cancionRepo.findAll();
+            // Se inserta cada título de canción en el Trie.
+            for (Cancion c : canciones) {
+                trieCanciones.insertar(c.getTitulo());
+            }
+        }
+    }
 
 
     /**
@@ -74,11 +99,11 @@ public class CancionServiceImpl implements CancionService {
                 .orElseThrow(()-> new ElementoNoEncontradoException("Artista no  encontrado"));
 
         // 2, Se sube la imagen de la porta y se recibe su URL
-        String urlImage = cloudinaryService.uploadImage(registrarCancionDto.imagenPortada());
+        String urlImage = cloudinaryUtils.uploadImage(registrarCancionDto.imagenPortada());
 
         // 3. Se sube la canción y se recibe su URL
         MultipartFile archivoMp3 = registrarCancionDto.archivoCancion();
-        String urlMp3 = cloudinaryService.uploadMp3(registrarCancionDto.archivoCancion());
+        String urlMp3 = cloudinaryUtils.uploadMp3(registrarCancionDto.archivoCancion());
 
         // 4. Calcular la duración de la canción desde mp3agic
             // Convertir MultipartFile a File temporal
@@ -209,8 +234,8 @@ public class CancionServiceImpl implements CancionService {
         grafoDeSimilitud.eliminarCancion(cancion);
 
         // 5. Borrar archivos Cloudinary
-        cloudinaryService.borrarArchivo(cancion.getUrlCancion());
-        cloudinaryService.borrarArchivo(cancion.getUrlPortada());
+        cloudinaryUtils.borrarArchivo(cancion.getUrlCancion());
+        cloudinaryUtils.borrarArchivo(cancion.getUrlPortada());
 
         // 6. Eliminar la canción
         cancionRepo.delete(cancion);
@@ -383,6 +408,269 @@ public class CancionServiceImpl implements CancionService {
                 .ifPresent(e -> metricas.put("artistaTop", e.getKey()));
 
         return metricas;
+    }
+
+
+    /**
+     * **Devuelve una lista de canciones cuyos títulos coincidan con el prefijo dado, utilizando el Trie.**
+     *
+     * @param prefijo Texto parcial introducido por el usuario (por ejemplo "ama").
+     * @return Lista de {@link CancionDto} que comienzan con ese prefijo.
+     */
+    @Override
+    public List<CancionDto> autocompletarTitulos(String prefijo) {
+        // Aseguramos que el Trie esté inicializado y cargado antes de realizar cualquier búsqueda.
+        inicializarTrie();
+
+        // 1. Obtenemos las coincidencias de títulos exactos a partir del Trie (operación rápida en memoria).
+        var coincidenciasMiLista = trieCanciones.autocompletar(prefijo);
+
+        // 1. Obtenemos las coincidencias de títulos exactos a partir del Trie (operación rápida en memoria).
+        // Convertir MiLinkedList → List de Java para usar Spring Data.
+        List<String> coincidencias = convertirMiLinkedList(coincidenciasMiLista);
+
+
+        // 2. Si no hay coincidencias de títulos, devolvemos una lista de DTOs vacía.
+        if (coincidencias.isEmpty()) {
+            return List.of();
+        }
+
+        // 3. Consultamos las canciones en la base de datos, buscando aquellas cuyo título esté en la lista de coincidencias.
+        List<Cancion> canciones = cancionRepo.findByTituloInIgnoreCase(coincidencias);
+
+        // 4. Convertimos las entidades a DTO antes de devolver el resultado.
+        return canciones.stream()
+                .map(cancionMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+
+    /**
+     * Convierte una lista enlazada propia (MiLinkedList) de Strings a una lista estándar de Java (ArrayList).
+     *
+     * <p>Esta conversión es necesaria para interactuar con las APIs de Java y Spring Data
+     * que esperan colecciones estándar.</p>
+     *
+     * @param lista La {@link MiLinkedList} de nombres artísticos a convertir.
+     * @return Una {@link java.util.List} de Strings con los mismos elementos.
+     */
+    private List<String> convertirMiLinkedList(MiLinkedList<String> lista) { // Método auxiliar para la conversión de tipos de lista.
+        List<String> resultado = new ArrayList<>(); // Inicializa una lista estándar (ArrayList) para el resultado.
+
+        for (String s : lista) { // Itera sobre la MiLinkedList usando su implementación de Iterable.
+            resultado.add(s); // Añade cada String de la lista propia a la lista estándar.
+        }
+
+        return resultado; // Retorna la lista estándar de Java.
+    }
+
+
+    /**
+     * Busca canciones aplicando filtros dinámicos (Artista, Género, Año) y devuelve el resultado de forma asíncrona.
+     *
+     * <p>Utiliza Spring Data JPA {@link Specification} para construir consultas dinámicas
+     * y las ejecuta en un hilo separado gracias a {@code @Async}.</p>
+     *
+     * @param artista Nombre del artista para filtrar (opcional).
+     * @param genero Género musical para filtrar (opcional).
+     * @param anioLanzamiento Año de lanzamiento para filtrar (opcional).
+     * @param pagina El número de página de resultados a retornar.
+     * @param size El tamaño de la página.
+     * @return Un {@code CompletableFuture} que contendrá la lista de canciones filtradas.
+     */
+    @Override
+    @Async // Indica que este método se ejecutará en un hilo de ejecución separado (asíncrono).
+    public CompletableFuture<List<CancionDto>> listarCancionesFiltro(
+            String artista, String genero, Integer anioLanzamiento, int pagina, int size) {
+
+        // 1. Configurar el objeto de paginación con el número de página y el tamaño.
+        Pageable pageable = PageRequest.of(pagina, size);
+
+        // 2. Inicializar las especificaciones para las condiciones AND y OR.
+        // Specification.where(null) crea una especificación base que no filtra nada.
+        Specification<Cancion> andSpec = Specification.where(null);
+        Specification<Cancion> orSpec = Specification.where(null);
+
+
+        // 3. Filtro por artista
+        if (artista != null && !artista.isEmpty()) {
+            // Define el criterio: root.get("artista") debe ser igual al valor del parámetro.
+            Specification<Cancion> artistaSpec = (root, query, builder) ->
+                    builder.equal(root.get("artistaPrincipal").get("id"), Long.parseLong(artista));
+            // Combina el nuevo filtro a la especificación AND.
+            andSpec = andSpec.and(artistaSpec);
+            // Combina el nuevo filtro a la especificación OR.
+            orSpec = orSpec.or(artistaSpec);
+        }
+
+        // 4. Construir el filtro por género.
+        if (genero != null && !genero.isEmpty()) {
+            // Define el criterio: root.get("genero") debe ser igual al valor del parámetro.
+            Specification<Cancion> generoSpec = (root, query, builder) ->
+                    builder.equal(root.get("generoMusical"), genero);
+            // Combina el nuevo filtro a la especificación AND.
+            andSpec = andSpec.and(generoSpec);
+            // Combina el nuevo filtro a la especificación OR.
+            orSpec = orSpec.or(generoSpec);
+        }
+
+        // 5. Filtro por año de lanzamiento
+        // Filtro por año de lanzamiento
+        if (anioLanzamiento != null) {
+
+            int anio = Integer.parseInt(String.valueOf(anioLanzamiento));
+
+            LocalDate inicio = LocalDate.of(anio, 1, 1);
+            LocalDate fin = LocalDate.of(anio, 12, 31);
+
+            Specification<Cancion> anioSpec = (root, query, builder) ->
+                    builder.between(root.get("fechaLanzamiento"), inicio, fin);
+
+            andSpec = andSpec.and(anioSpec);
+            orSpec = orSpec.or(anioSpec);
+        }
+
+
+        // 6. Ejecutar la consulta para canciones que cumplan *todos* los filtros (AND).
+        List<Cancion> cancionesAnd = cancionRepo.findAll(andSpec, pageable).getContent();
+
+        // 7. Ejecutar la consulta para canciones que cumplan *alguno* de los filtros (OR).
+        List<Cancion> cancionesOr = cancionRepo.findAll(orSpec, pageable).getContent();
+
+        // 8. Combinar los resultados de AND y OR en un Set (LinkedHashSet) para eliminar duplicados
+        // y mantener el orden de inserción.
+        Set<Cancion> resultadoFinal = new LinkedHashSet<>(cancionesAnd);
+        resultadoFinal.addAll(cancionesOr);
+
+        // 9. Mapear la colección final de entidades a una lista de DTOs.
+        List<CancionDto> cancionesDto = resultadoFinal.stream()
+                .map(cancionMapper::toDto)
+                .collect(Collectors.toList());
+
+        // 10. Retornar el resultado envuelto en un CompletableFuture completado,
+        // cumpliendo con el contrato del método asíncrono.
+        return CompletableFuture.completedFuture(cancionesDto);
+    }
+
+
+    /**
+     * Genera un CSV con las canciones favoritas del usuario identificado por usuarioId.
+     *
+     * @param usuarioId id del usuario
+     * @return ByteArrayInputStream con el contenido del CSV
+     * @throws ElementoNoEncontradoException si el usuario no existe
+     * @throws Exception en caso de errores de entrada/salida
+     */
+    @Override
+    public ByteArrayInputStream generarReporteFavoritos(Long usuarioId) throws ElementoNoEncontradoException, Exception {
+
+        // Buscar el usuario por su ID en la base de datos; si no existe, lanzar excepción.
+        Usuario usuario = usuarioRepo.findById(usuarioId)
+                .orElseThrow(() -> new ElementoNoEncontradoException("Usuario no encontrado con id: " + usuarioId));
+
+        // Obtener la lista de canciones favoritas del usuario.
+        List<Cancion> favoritas = usuario.getListaCancionesFavoritas();
+
+        // Crear un buffer en memoria para generar el CSV (salida binaria).
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        // Envolver el flujo binario en un escritor de texto para poder escribir líneas.
+        // Usamos UTF-8 para soportar caracteres acentuados en los títulos/artistas.
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(baos, "UTF-8"))) {
+
+            // Escribir la primera línea con los encabezados del CSV.
+            writer.write("ID;Titulo;Genero;FechaLanzamiento;Artista;Duracion");
+            writer.newLine(); // Salto de línea después de los encabezados.
+
+            // Iterar por cada canción favorita y escribir sus campos separados por ';'.
+            for (Cancion c : favoritas) {
+                // Preparar cada campo (evitar nulos)
+                String id = c.getId() == null ? "" : c.getId().toString();
+                String titulo = c.getTitulo() == null ? "" : c.getTitulo();
+                String genero = c.getGeneroMusical() == null ? "" : c.getGeneroMusical().toString();
+                String fecha = c.getFechaLanzamiento() == null ? "" : c.getFechaLanzamiento().toString();
+                String artista = (c.getArtistaPrincipal() == null || c.getArtistaPrincipal().getNombreArtistico() == null)
+                        ? "" : c.getArtistaPrincipal().getNombreArtistico();
+                String duracion = c.getDuracion() == null ? "" : c.getDuracion();
+
+                // Escribir la línea formateada con delimitador ';'
+                writer.write(String.join(";", id, titulo, genero, fecha, artista, duracion));
+                writer.newLine(); // Nueva línea para la siguiente canción.
+            }
+
+            // Forzar el vaciado del buffer al flujo subyacente.
+            writer.flush();
+        } catch (IOException e) {
+            // Si ocurre un error de E/S, envolver la excepción y re-lanzarla.
+            throw new Exception("Error al generar el CSV: " + e.getMessage(), e);
+        }
+
+        // Crear un ByteArrayInputStream a partir de los bytes escritos en memoria
+        // y retornarlo para que el controlador pueda leer los bytes y enviarlos en la respuesta.
+        return new ByteArrayInputStream(baos.toByteArray());
+    }
+
+
+
+    /**
+     * Genera un reporte general de todas las canciones registradas en el sistema en formato de texto plano (TXT).
+     *
+     * <p>Recupera todas las canciones de la base de datos y formatea sus metadatos clave
+     * en un {@code ByteArrayInputStream} para su descarga como archivo.</p>
+     *
+     * @return Un {@code ByteArrayInputStream} que contiene el contenido del reporte TXT codificado en UTF-8.
+     * @throws Exception Si ocurre un error durante la obtención de datos, la manipulación de flujos o la escritura del archivo.
+     */
+    @Override
+    public ByteArrayInputStream generarReporteGeneralCanciones() throws Exception {
+
+        // Obtener todas las canciones del repositorio de la base de datos.
+        List<Cancion> canciones = cancionRepo.findAll();
+
+        // Crear un flujo de salida en memoria (ByteArrayOutputStream) para almacenar temporalmente el contenido del reporte.
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        // Inicializar un BufferedWriter para escribir texto de manera eficiente,
+        // envolviendo el flujo de bytes en un OutputStreamWriter para asegurar la codificación UTF-8.
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(baos, "UTF-8"))) {
+
+            // Encabezado del reporte
+            writer.write("==== REPORTE GENERAL DE CANCIONES ====");
+            writer.newLine();
+            writer.write("Total de canciones: " + canciones.size());
+            writer.newLine();
+            writer.newLine();
+
+            // Escribir la información detallada de cada canción
+            for (Cancion c : canciones) {
+                writer.write("ID: " + (c.getId() != null ? c.getId() : "N/A"));
+                writer.newLine();
+                writer.write("Título: " + (c.getTitulo() != null ? c.getTitulo() : "N/A"));
+                writer.newLine();
+                writer.write("Género: " + (c.getGeneroMusical() != null ? c.getGeneroMusical().toString() : "N/A"));
+                writer.newLine();
+                writer.write("Fecha de lanzamiento: " + (c.getFechaLanzamiento() != null ? c.getFechaLanzamiento().toString() : "N/A"));
+                writer.newLine();
+                writer.write("Artista: " +
+                        (c.getArtistaPrincipal() != null && c.getArtistaPrincipal().getNombreArtistico() != null
+                                ? c.getArtistaPrincipal().getNombreArtistico() : "N/A"));
+                writer.newLine();
+                writer.write("Duración: " + (c.getDuracion() != null ? c.getDuracion() : "N/A"));
+                writer.newLine();
+                writer.write("----------------------------------------");
+                writer.newLine();
+            }
+
+            // Asegurar que todos los datos en el buffer se escriban al ByteArrayOutputStream.
+            writer.flush();
+
+        } catch (IOException e) {
+            // Capturar errores de I/O y relanzarlos como una excepción general con el mensaje.
+            throw new Exception("Error al generar el archivo TXT: " + e.getMessage(), e);
+        }
+
+        // Convertir el contenido a flujo de entrada (para descarga)
+        return new ByteArrayInputStream(baos.toByteArray());
     }
 
 }

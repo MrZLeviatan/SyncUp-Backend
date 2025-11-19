@@ -39,4 +39,7 @@ public interface ArtistaRepo extends JpaRepository<Artista, Long> {
     // Buscar si existe un artista con ese nombre artístico (sin distinguir mayúsculas/minúsculas)
     boolean existsByNombreArtisticoIgnoreCase(String nombreArtistico);
 
+
+
+
 }

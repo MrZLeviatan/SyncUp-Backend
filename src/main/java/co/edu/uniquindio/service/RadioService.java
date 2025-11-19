@@ -18,7 +18,7 @@ import co.edu.uniquindio.utils.estructuraDatos.GrafoDeSimilitud;
  * @see PlayListDto
  * @see Usuario
  */
-public interface RecomendacionService {
+public interface RadioService {
 
 
     /**

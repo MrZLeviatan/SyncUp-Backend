@@ -5,17 +5,14 @@ package co.edu.uniquindio.models.enums;
  */
 public enum GeneroMusical {
 
+    POP,
     ROCK,
-    BACHATA,
-    SALSA,
-    MERENGUE,
-    VALLENATO,
-    SALSA_CHOKE,
     REGUETON,
-    TRAP,
     RAP,
     METAL,
-    REGUE,
-    ELECTRONICA
+    NU_METAL,
+    ELECTRONICA,
+    HEAVY_METAL,
+    BLACK_METAL
 
 }

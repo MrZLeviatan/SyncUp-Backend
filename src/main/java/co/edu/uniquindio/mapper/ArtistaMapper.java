@@ -30,7 +30,6 @@ public interface ArtistaMapper {
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "canciones", expression = "java(new java.util.HashSet<>())")
-    @Mapping(target = "albums", expression = "java(new java.util.HashSet<>())")
     @Mapping(target = "urlImagen", ignore = true) // La imagen se maneja aparte
     Artista toEntity(RegistrarArtistasDto registrarArtistasDto);
 

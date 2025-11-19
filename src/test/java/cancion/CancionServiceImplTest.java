@@ -10,7 +10,7 @@ import co.edu.uniquindio.models.enums.GeneroMusical;
 import co.edu.uniquindio.repo.ArtistaRepo;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.service.impl.CancionServiceImpl;
-import co.edu.uniquindio.utils.CloudinaryService;
+import co.edu.uniquindio.utils.CloudinaryUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -40,7 +40,7 @@ class CancionServiceImplTest {
     private ArtistaRepo artistaRepo;
 
     @Mock
-    private CloudinaryService cloudinaryService;
+    private CloudinaryUtils cloudinaryUtils;
 
     @Mock
     private MultipartFile archivoCancion;
@@ -116,8 +116,8 @@ class CancionServiceImplTest {
         when(artistaRepo.findById(1L)).thenReturn(Optional.of(artista));
 
         // Simular subida a Cloudinary
-        when(cloudinaryService.uploadImage(imagenPortada)).thenReturn("urlImagen");
-        when(cloudinaryService.uploadMp3(archivoCancion)).thenReturn("urlMp3");
+        when(cloudinaryUtils.uploadImage(imagenPortada)).thenReturn("urlImagen");
+        when(cloudinaryUtils.uploadMp3(archivoCancion)).thenReturn("urlMp3");
 
         // Simular mapper
         when(cancionMapper.toEntity(dto)).thenReturn(cancion);

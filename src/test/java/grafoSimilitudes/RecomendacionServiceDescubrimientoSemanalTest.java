@@ -10,7 +10,7 @@ import co.edu.uniquindio.models.Usuario;
 import co.edu.uniquindio.models.enums.GeneroMusical;
 import co.edu.uniquindio.repo.CancionRepo;
 import co.edu.uniquindio.repo.UsuarioRepo;
-import co.edu.uniquindio.service.impl.RecomendacionServiceImpl;
+import co.edu.uniquindio.service.impl.RadioServiceImpl;
 import co.edu.uniquindio.exception.ElementoNoEncontradoException;
 import co.edu.uniquindio.utils.listasPropias.MiLinkedList;
 import co.edu.uniquindio.utils.listasPropias.MiSet;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * Pruebas unitarias para el método
- * {@link RecomendacionServiceImpl#generarDescubrimientoSemanal(Long)}.
+ * {@link RadioServiceImpl#generarDescubrimientoSemanal(Long)}.
  *
  * <p>Verifica la correcta generación de la lista “Descubrimiento Semanal”
  * usando un grafo de similitud simulado y repositorios mockeados.
@@ -54,7 +54,7 @@ public class RecomendacionServiceDescubrimientoSemanalTest {
 
     /** Servicio bajo prueba, con dependencias inyectadas automáticamente. */
     @InjectMocks
-    private RecomendacionServiceImpl recomendacionService;
+    private RadioServiceImpl recomendacionService;
 
     /** Grafo simulado para controlar el comportamiento de similitudes. */
     private GrafoDeSimilitud grafoMock;
@@ -66,12 +66,12 @@ public class RecomendacionServiceDescubrimientoSemanalTest {
 
         // Crea un grafo simulado y lo asigna al servicio directamente (ya que no se inyecta por Spring aquí)
         grafoMock = mock(GrafoDeSimilitud.class);
-        recomendacionService = new RecomendacionServiceImpl(grafo,cancionRepo, usuarioRepo, cancionMapper);
+        recomendacionService = new RadioServiceImpl(grafo,cancionRepo, usuarioRepo, cancionMapper);
 
         // Inyecta manualmente el grafo simulado al campo privado
         // (porque en la app real se crea en @PostConstruct)
         try {
-            var campoGrafo = RecomendacionServiceImpl.class.getDeclaredField("grafo");
+            var campoGrafo = RadioServiceImpl.class.getDeclaredField("grafo");
             campoGrafo.setAccessible(true);
             campoGrafo.set(recomendacionService, grafoMock);
         } catch (Exception e) {

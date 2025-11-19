@@ -60,20 +60,6 @@ public class Usuario extends Persona {
     @Comment("Lista de canciones favoritas del usuario.")
     private List<Cancion> cancionesFavoritas = new LinkedList<>();
 
-    /**
-     * Colección de álbumes musicales que el usuario ha indicado que le gustan.
-     *
-     * <p>Asociación Muchos a Muchos con {@link Album}. La tabla intermedia
-     * {@code usuario_albunes_gustados} gestiona esta relación.</p>
-     */
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "usuario_albunes_gustados",
-            joinColumns = @JoinColumn(name = "usuario_id"),
-            inverseJoinColumns = @JoinColumn(name = "album_id")
-    )
-    @Comment("Álbumes que le gustan al usuario.")
-    private List<Album> albumsGustados = new LinkedList<>();
 
     /**
      * Colección de artistas marcados como preferidos por el usuario.
@@ -142,29 +128,6 @@ public class Usuario extends Persona {
         return new LinkedList<>(cancionesFavoritas);
     }
 
-    // ---------------------------------------------------------------------------------------------
-    // GESTIÓN DE ÁLBUMES GUSTADOS
-    // ---------------------------------------------------------------------------------------------
-
-    /**
-     * Registra un álbum como gustado por el usuario.
-     *
-     * @param album álbum que se desea agregar.
-     */
-    public void agregarAlbumGustado(Album album) {
-        if (album != null && !albumsGustados.contains(album)) {
-            albumsGustados.add(album);
-        }
-    }
-
-    /**
-     * Elimina un álbum de la lista de álbumes gustados.
-     *
-     * @param album álbum a retirar.
-     */
-    public void eliminarAlbumGustado(Album album) {
-        albumsGustados.remove(album);
-    }
 
     // ---------------------------------------------------------------------------------------------
     // GESTIÓN DE ARTISTAS PREFERIDOS
