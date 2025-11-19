@@ -136,4 +136,6 @@ public interface UsuarioService {
      * @throws ElementoNoEncontradoException Si el ID del usuario no existe.
      */
     List<UsuarioDto> obtenerUsuariosSeguidos(Long idUsuario) throws ElementoNoEncontradoException;
+
+    int cantidadSeguidores(Long idUsuario) throws ElementoNoEncontradoException;
 }

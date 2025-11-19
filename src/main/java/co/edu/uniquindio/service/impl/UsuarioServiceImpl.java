@@ -424,6 +424,11 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public int cantidadSeguidores(Long idUsuario) throws ElementoNoEncontradoException {
+        Usuario usuario = buscarUsuarioId(idUsuario);
+        return usuario.contarUsuariosSeguidos();
+    }
 
 
 }

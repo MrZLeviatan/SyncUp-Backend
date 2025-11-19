@@ -222,4 +222,24 @@ public class UsuarioController {
         // 2. Retorna una respuesta 200 OK con la lista de usuarios seguidos.
         return ResponseEntity.ok(new MensajeDto<>(false, usuariosSeguidos));
     }
+
+    /**
+     * Obtiene la cantidad de seguidores de un usuario específico.
+     *
+     * @param idUsuario ID del usuario a consultar, obtenido de la URL.
+     * @return Cantidad de seguidores envuelta en {@code ResponseEntity}.
+     * @throws ElementoNoEncontradoException Si el ID del usuario no existe.
+     */
+    @GetMapping("/seguidores/{idUsuario}") // Mapea peticiones HTTP GET a /api/usuario/seguidores/{idUsuario}.
+    @PreAuthorize("hasAnyRole('USUARIO','ADMIN')") // Permite que tanto usuarios como admins accedan.
+    public ResponseEntity<MensajeDto<Integer>> obtenerCantidadSeguidores(@PathVariable Long idUsuario)
+            throws ElementoNoEncontradoException {
+
+        // Llama al servicio para obtener la cantidad de seguidores
+        int cantidad = usuarioService.cantidadSeguidores(idUsuario);
+
+        // Retorna la cantidad envuelta en un DTO de mensaje
+        return ResponseEntity.ok(new MensajeDto<>(false, cantidad));
+    }
+
 }
