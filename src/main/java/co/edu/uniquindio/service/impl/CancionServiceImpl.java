@@ -19,6 +19,7 @@ import co.edu.uniquindio.utils.estructuraDatos.TrieAutocompletado;
 import co.edu.uniquindio.utils.listasPropias.MiLinkedList;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.UnsupportedTagException;
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -67,6 +68,7 @@ public class CancionServiceImpl implements CancionService {
      * <p>Este método se ejecuta condicionalmente solo si el Trie está vacío, garantizando
      * que la carga desde la base de datos solo se haga una vez durante el ciclo de vida de la aplicación.</p>
      */
+    @PostConstruct
     private void inicializarTrie() {
         // Verifica si el Trie está vacío realizando una búsqueda de prefijo vacío.
         if (trieCanciones.autocompletar("").isEmpty()) {
@@ -147,6 +149,7 @@ public class CancionServiceImpl implements CancionService {
                 grafoDeSimilitud.conectarCanciones(cancion, otra, peso);
             }
         }
+        trieCanciones.insertar(cancion.getTitulo());
     }
 
     /**
@@ -181,6 +184,11 @@ public class CancionServiceImpl implements CancionService {
         // 1. Se busca la canción actualizar
         Cancion cancion = buscarCancionId(editarCancionDto.id());
 
+        if (!cancion.getTitulo().equals(editarCancionDto.titulo())) {
+            trieCanciones.eliminar(cancion.getTitulo());
+            trieCanciones.insertar(editarCancionDto.titulo());
+        }
+
         // 2. Remover del grafo antes de actualizar (para evitar pesos viejos)
         grafoDeSimilitud.eliminarCancion(cancion);
 
@@ -200,7 +208,6 @@ public class CancionServiceImpl implements CancionService {
                 grafoDeSimilitud.conectarCanciones(cancion, otra, peso);
             }
         }
-
     }
 
 
@@ -241,6 +248,8 @@ public class CancionServiceImpl implements CancionService {
 
         // 6. Eliminar la canción
         cancionRepo.delete(cancion);
+
+        trieCanciones.insertar(cancion.getTitulo());
     }
 
 
@@ -376,41 +385,48 @@ public class CancionServiceImpl implements CancionService {
      */
     @Override
     public Map<String, Object> obtenerMetricasCanciones() {
-        // Se obtienen todas las canciones desde la base de datos usando el repositorio cancionRepo.
         List<Cancion> canciones = cancionRepo.findAll();
-        // Se crea un mapa (HashMap) donde se almacenarán las métricas calculadas.
-        // Cada entrada del mapa tendrá un nombre de métrica como clave (por ejemplo "totalCanciones") y su valor correspondiente.
         Map<String, Object> metricas = new HashMap<>();
 
-        // Se cuenta el total de canciones registradas (canciones.size()).
-        // Se guarda este número en el mapa con la clave "totalCanciones".
+        // Total de canciones
         metricas.put("totalCanciones", canciones.size());
 
-        // Se usa Stream API para agrupar las canciones por su género musical. groupingBy(...) crea un mapa donde la clave es el nombre del género
-        // El resultado es un Map<String, Long> que indica cuántas canciones hay por cada género.
+        // Canciones por género
         Map<String, Long> porGenero = canciones.stream()
                 .collect(Collectors.groupingBy(
                         c -> c.getGeneroMusical().toString(),
                         Collectors.counting()
                 ));
-        // Se guarda el resultado anterior dentro del mapa principal metricas bajo la clave "cancionesPorGenero".
         metricas.put("cancionesPorGenero", porGenero);
 
-        // Nuevamente, se usa Stream API, pero esta vez agrupando por el nombre artístico del artista principal.
-        // Se cuentan cuántas canciones tiene cada artista.
+        // Artista con más canciones
         Map<String, Long> porArtista = canciones.stream()
                 .collect(Collectors.groupingBy(
                         c -> c.getArtistaPrincipal().getNombreArtistico(),
                         Collectors.counting()
                 ));
-        // Se busca el artista con mayor cantidad de canciones (max sobre el valor del mapa).
         porArtista.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
-                // Si existe, se toma su nombre (e.getKey()) y se guarda en el mapa de métricas bajo la clave "artistaTop".
                 .ifPresent(e -> metricas.put("artistaTop", e.getKey()));
+
+        // Top 5 artistas convertidos a lista de Map<String,Object> para Angular
+        List<Map<String, Object>> top5ArtistasDTO = porArtista.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(5)
+                .map(e -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("key", e.getKey());      // nombre del artista
+                    map.put("value", e.getValue());  // cantidad de canciones
+                    return map;
+                })
+                .collect(Collectors.toList());
+
+        metricas.put("top5Artistas", top5ArtistasDTO);
+
 
         return metricas;
     }
+
 
 
     /**
@@ -421,8 +437,6 @@ public class CancionServiceImpl implements CancionService {
      */
     @Override
     public List<CancionDto> autocompletarTitulos(String prefijo) {
-        // Aseguramos que el Trie esté inicializado y cargado antes de realizar cualquier búsqueda.
-        inicializarTrie();
 
         // 1. Obtenemos las coincidencias de títulos exactos a partir del Trie (operación rápida en memoria).
         var coincidenciasMiLista = trieCanciones.autocompletar(prefijo);

@@ -168,6 +168,15 @@ public class MiMap<K,V> implements Iterable<MiMap.Par<K,V>> { // Clase genérica
         return (valor != null) ? valor : valorPorDefecto;
     }
 
+    /**
+     * Retorna true si el mapa no contiene elementos.
+     * Returns true if the map contains no elements.
+     */
+    public boolean isEmpty() {
+        return head == null;
+    }
+
+
 
 
     /**

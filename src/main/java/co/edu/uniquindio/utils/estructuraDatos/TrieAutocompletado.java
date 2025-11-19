@@ -59,6 +59,54 @@ public class TrieAutocompletado {
         actual.esFinDePalabra = true;
     }
 
+    /**
+     * Elimina una palabra del Trie si existe.
+     */
+    public void eliminar(String palabra) {
+        eliminarRecursivo(raiz, palabra.toLowerCase(), 0);
+    }
+
+    /**
+     * Función recursiva que elimina nodos cuando ya no son necesarios.
+     */
+    private boolean eliminarRecursivo(NodoTrie nodo, String palabra, int index) {
+
+        // Caso base: llegamos al final de la palabra
+        if (index == palabra.length()) {
+            if (!nodo.esFinDePalabra) {
+                return false; // No existe la palabra
+            }
+            nodo.esFinDePalabra = false;
+            return nodo.hijos.isEmpty(); // Si no tiene hijos, se puede borrar
+        }
+
+        char c = palabra.charAt(index);
+        NodoTrie hijo = nodo.hijos.get(c);
+
+        if (hijo == null) {
+            return false; // No existe la palabra
+        }
+
+        boolean borrarHijo = eliminarRecursivo(hijo, palabra, index + 1);
+
+        if (borrarHijo) {
+            nodo.hijos.remove(c); // Borrar nodo hijo
+            return nodo.hijos.isEmpty() && !nodo.esFinDePalabra;
+        }
+
+        return false;
+    }
+
+    /**
+     * Actualiza una palabra existente reemplazándola por otra.
+     * Updates an existing word by replacing it with a new one.
+     */
+    public void actualizar(String viejo, String nuevo) {
+        eliminar(viejo);      // Eliminar el título anterior
+        insertar(nuevo);      // Insertar el nuevo título
+    }
+
+
 
     /**
      * Busca todas las palabras almacenadas que coinciden con un prefijo específico (Función de Autocompletado).
@@ -91,6 +139,7 @@ public class TrieAutocompletado {
 
         return resultados; // Retorna la lista de palabras autocompletadas.
     }
+
 
 
     /**
